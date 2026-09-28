@@ -1,6 +1,5 @@
 import { useMemo } from 'react'
 import { DiningOverviewCards } from './DiningOverviewCards'
-import { RolloverTargetPanel } from './RolloverTargetPanel'
 import { TodaysNumbersPanel } from './TodaysNumbersPanel'
 import { OnTrackPacingPanel } from './OnTrackPacingPanel'
 import { DiningPacingChart } from './DiningPacingChart'
@@ -8,16 +7,21 @@ import { useDiningStore } from '@/store/useDiningStore'
 import { useSettingsStore } from '@/store/useSettingsStore'
 import { computeSemesterStats, getToday } from '@/utils/calculations/semester'
 import { computePacingStats, computeDailySeries } from '@/utils/calculations/diningPacing'
+import { DINING_BALANCE_ACCOUNT } from '@/types'
 
 export function DiningDashboard() {
   const transactions = useDiningStore((s) => s.transactions)
   const settings = useSettingsStore((s) => s.settings)
 
   const today = useMemo(() => getToday(), [])
+  const balanceTransactions = useMemo(
+    () => transactions.filter((transaction) => transaction.account.trim() === DINING_BALANCE_ACCOUNT),
+    [transactions],
+  )
 
   const spent = useMemo(
-    () => transactions.reduce((sum, t) => sum + t.amount, 0),
-    [transactions],
+    () => balanceTransactions.reduce((sum, transaction) => sum - transaction.amount, 0),
+    [balanceTransactions],
   )
   const remaining = settings.diningPlanTotal - spent
 
@@ -41,13 +45,13 @@ export function DiningDashboard() {
   const dailySeries = useMemo(
     () =>
       computeDailySeries(
-        transactions,
+        balanceTransactions,
         settings.semesterStartDate,
         settings.semesterEndDate,
         settings.diningPlanTotal,
         today,
       ),
-    [transactions, settings.semesterStartDate, settings.semesterEndDate, settings.diningPlanTotal, today],
+    [balanceTransactions, settings.semesterStartDate, settings.semesterEndDate, settings.diningPlanTotal, today],
   )
 
   return (
@@ -57,7 +61,6 @@ export function DiningDashboard() {
         spent={spent}
         remaining={remaining}
       />
-      <RolloverTargetPanel remaining={remaining} />
       <TodaysNumbersPanel stats={semesterStats} />
       <OnTrackPacingPanel stats={pacingStats} />
       <DiningPacingChart dailySeries={dailySeries} />

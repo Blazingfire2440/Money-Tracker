@@ -2,7 +2,11 @@ import { Card } from '@/components/common/Card'
 import { Badge } from '@/components/common/Badge'
 import { DataTable, type Column } from '@/components/table/DataTable'
 import { useCreditCardStore } from '@/store/useCreditCardStore'
-import { getCreditCardCategories, type CreditCardTransaction } from '@/types'
+import {
+  getCreditCardCategories,
+  REIMBURSEMENT_STATUSES,
+  type CreditCardTransaction,
+} from '@/types'
 import { formatCurrency } from '@/utils/formatters'
 
 const columns: Column<CreditCardTransaction>[] = [
@@ -26,11 +30,17 @@ const columns: Column<CreditCardTransaction>[] = [
   },
   { key: 'reason', label: 'Reason', editable: true, inputType: 'text' },
   {
-    key: 'isReimbursable',
-    label: 'Reimbursable',
+    key: 'reimbursementStatus',
+    label: 'Reimbursement',
     editable: true,
-    inputType: 'checkbox',
-    render: (row) => (row.isReimbursable ? <Badge tone="warn">Reimbursable</Badge> : null),
+    inputType: 'select',
+    options: [...REIMBURSEMENT_STATUSES],
+    render: (row) =>
+      row.reimbursementStatus === 'Not reimbursable' ? null : (
+        <Badge tone={row.reimbursementStatus === 'Expense' ? 'bad' : 'warn'}>
+          {row.reimbursementStatus}
+        </Badge>
+      ),
   },
   { key: 'paymentMethod', label: 'Payment', editable: true, inputType: 'text' },
 ]
@@ -60,7 +70,7 @@ export function CreditCardTransactionTable() {
         onEditRow={(id, patch) => update(id, patch)}
         onDeleteRow={(id) => remove(id)}
         getSearchableText={(row) =>
-          `${row.date} ${row.location} ${row.category} ${row.reason} ${row.paymentMethod}`
+          `${row.date} ${row.location} ${row.category} ${row.reason} ${row.paymentMethod} ${row.reimbursementStatus}`
         }
         emptyTitle="No credit card transactions yet"
         emptyDescription="Add your first charge above."

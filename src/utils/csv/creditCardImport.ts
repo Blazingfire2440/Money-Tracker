@@ -69,7 +69,7 @@ function makeResult(
       category,
       amount,
       reason: '',
-      isReimbursable: false,
+      reimbursementStatus: 'Not reimbursable',
       paymentMethod,
     },
     error: null,

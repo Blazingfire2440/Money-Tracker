@@ -14,30 +14,18 @@ interface DiningStore {
   bulkAdd: (transactions: DiningTransaction[]) => Promise<void>
 }
 
-function normalizeTransactions(transactions: DiningTransaction[]): DiningTransaction[] {
-  return transactions.map((transaction) => ({
-    ...transaction,
-    amount: Math.abs(transaction.amount),
-  }))
-}
-
 export const useDiningStore = create<DiningStore>((set, get) => ({
   transactions: [],
   isLoaded: false,
 
   hydrate: async () => {
-    const storedTransactions = (await getDiningTransactions()) ?? []
-    const transactions = normalizeTransactions(storedTransactions)
+    const transactions = (await getDiningTransactions()) ?? []
     set({ transactions, isLoaded: true })
-    if (transactions.some((transaction, index) => transaction.amount !== storedTransactions[index].amount)) {
-      await setDiningTransactions(transactions)
-    }
   },
 
   add: async (input) => {
     const transaction: DiningTransaction = {
       ...input,
-      amount: Math.abs(input.amount),
       id: createId(),
     }
     const transactions = [transaction, ...get().transactions]
@@ -51,7 +39,6 @@ export const useDiningStore = create<DiningStore>((set, get) => ({
         ? {
             ...t,
             ...patch,
-            amount: patch.amount === undefined ? t.amount : Math.abs(patch.amount),
           }
         : t,
     )
@@ -66,14 +53,13 @@ export const useDiningStore = create<DiningStore>((set, get) => ({
   },
 
   bulkReplace: async (transactions) => {
-    const normalizedTransactions = normalizeTransactions(transactions)
-    set({ transactions: normalizedTransactions })
-    await setDiningTransactions(normalizedTransactions)
+    set({ transactions })
+    await setDiningTransactions(transactions)
   },
 
   bulkAdd: async (newTransactions) => {
-    const transactions = [...normalizeTransactions(newTransactions), ...get().transactions]
-    set({ transactions })
-    await setDiningTransactions(transactions)
+    const updatedTransactions = [...newTransactions, ...get().transactions]
+    set({ transactions: updatedTransactions })
+    await setDiningTransactions(updatedTransactions)
   },
 }))

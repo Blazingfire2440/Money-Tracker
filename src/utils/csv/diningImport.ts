@@ -91,10 +91,9 @@ export function applyImportMapping(
     const rawNotes = mapping.notes ? row[mapping.notes] : undefined
 
     const date = rawDate ? tryParseDate(rawDate) : null
-    const parsedAmount = rawAmount ? parseCurrencyAmount(rawAmount) : null
-    const amount = parsedAmount === null ? NaN : Math.abs(parsedAmount)
+    const amount = rawAmount ? parseCurrencyAmount(rawAmount) : null
 
-    if (!date || !rawLocation?.trim() || !Number.isFinite(amount)) {
+    if (!date || !rawLocation?.trim() || amount === null) {
       return {
         transaction: null,
         error: 'Could not parse date, location, or amount for this row',

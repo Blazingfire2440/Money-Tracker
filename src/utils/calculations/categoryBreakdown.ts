@@ -16,12 +16,14 @@ export interface CategoryStat {
 export function computeCategoryBreakdown(
   transactionsInMonth: CreditCardTransaction[],
 ): CategoryStat[] {
-  const charges = transactionsInMonth.filter((transaction) => transaction.category !== 'Payment')
+  const charges = transactionsInMonth.filter(
+    (transaction) =>
+      transaction.category !== 'Payment' &&
+      transaction.reimbursementStatus === 'Not reimbursable',
+  )
   const totalCharges = charges.reduce((sum, transaction) => sum + transaction.amount, 0)
 
-  const categories = getCreditCardCategories(
-    transactionsInMonth.map((transaction) => transaction.category),
-  )
+  const categories = getCreditCardCategories(charges.map((transaction) => transaction.category))
   const stats = categories.map((category) => {
     const matching =
       category === 'Payment'

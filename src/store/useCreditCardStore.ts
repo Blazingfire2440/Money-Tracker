@@ -1,5 +1,6 @@
 import { create } from 'zustand'
 import type { CreditCardTransaction } from '@/types'
+import { CREDIT_CARD_PAYMENT_METHOD } from '@/types'
 import { getCreditCardTransactions, setCreditCardTransactions } from '@/data/db'
 import { createId } from '@/utils/id'
 
@@ -18,17 +19,52 @@ interface CreditCardStore {
   bulkAdd: (transactions: CreditCardTransaction[]) => Promise<void>
 }
 
+type StoredCreditCardTransaction = Omit<CreditCardTransaction, 'reimbursementStatus'> & {
+  reimbursementStatus?: CreditCardTransaction['reimbursementStatus'] | boolean
+  isReimbursable?: boolean
+}
+
+function normalizeTransaction(transaction: StoredCreditCardTransaction): CreditCardTransaction {
+  const { isReimbursable, ...storedTransaction } = transaction
+  const wasLegacyExpense = transaction.paymentMethod === 'Expense'
+  const reimbursementStatus =
+    transaction.reimbursementStatus === 'Expense' || wasLegacyExpense
+      ? 'Expense'
+      : transaction.reimbursementStatus === 'Reimbursable' ||
+          transaction.reimbursementStatus === true ||
+          isReimbursable === true
+        ? 'Reimbursable'
+        : 'Not reimbursable'
+
+  return {
+    ...storedTransaction,
+    category:
+      reimbursementStatus === 'Expense'
+        ? 'N/A'
+        : transaction.category === 'N/A'
+          ? 'Other'
+          : transaction.category,
+    paymentMethod: wasLegacyExpense ? CREDIT_CARD_PAYMENT_METHOD : transaction.paymentMethod,
+    reimbursementStatus,
+  }
+}
+
 export const useCreditCardStore = create<CreditCardStore>((set, get) => ({
   transactions: [],
   isLoaded: false,
 
   hydrate: async () => {
-    const transactions = (await getCreditCardTransactions()) ?? []
+    const storedTransactions =
+      ((await getCreditCardTransactions()) ?? []) as StoredCreditCardTransaction[]
+    const transactions = storedTransactions.map(normalizeTransaction)
     set({ transactions, isLoaded: true })
+    if (JSON.stringify(transactions) !== JSON.stringify(storedTransactions)) {
+      await setCreditCardTransactions(transactions)
+    }
   },
 
   add: async (input) => {
-    const transaction: CreditCardTransaction = { ...input, id: createId() }
+    const transaction = normalizeTransaction({ ...input, id: createId() })
     const transactions = [transaction, ...get().transactions]
     set({ transactions })
     await setCreditCardTransactions(transactions)
@@ -36,7 +72,7 @@ export const useCreditCardStore = create<CreditCardStore>((set, get) => ({
 
   update: async (id, patch) => {
     const transactions = get().transactions.map((t) =>
-      t.id === id ? { ...t, ...patch } : t,
+      t.id === id ? normalizeTransaction({ ...t, ...patch }) : t,
     )
     set({ transactions })
     await setCreditCardTransactions(transactions)
@@ -65,12 +101,16 @@ export const useCreditCardStore = create<CreditCardStore>((set, get) => ({
   },
 
   bulkReplace: async (transactions) => {
-    set({ transactions })
-    await setCreditCardTransactions(transactions)
+    const normalizedTransactions = transactions.map(normalizeTransaction)
+    set({ transactions: normalizedTransactions })
+    await setCreditCardTransactions(normalizedTransactions)
   },
 
   bulkAdd: async (newTransactions) => {
-    const transactions = [...newTransactions, ...get().transactions]
+    const transactions = [
+      ...newTransactions.map(normalizeTransaction),
+      ...get().transactions,
+    ]
     set({ transactions })
     await setCreditCardTransactions(transactions)
   },

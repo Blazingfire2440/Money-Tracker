@@ -13,7 +13,12 @@ export function CategoryBreakdownPanel({ stats }: CategoryBreakdownPanelProps) {
 
   return (
     <Card>
-      <h3 className="mb-3 text-sm font-semibold text-slate-700">Category Breakdown</h3>
+      <h3 className="text-sm font-semibold text-slate-700">
+        Non-reimbursable Category Breakdown
+      </h3>
+      <p className="mb-3 mt-1 text-xs text-slate-500">
+        Only non-reimbursable charges are included; reimbursable items and expenses are excluded.
+      </p>
       {chartData.length === 0 ? (
         <EmptyState title="No charges this month" />
       ) : (

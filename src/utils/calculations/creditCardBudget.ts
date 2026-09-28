@@ -40,10 +40,14 @@ export function computeMonthlyBudgetStats(
   transactionsInMonth: CreditCardTransaction[],
   monthlyBudget: number,
 ): MonthlyBudgetStats {
-  const charges = transactionsInMonth.filter((transaction) => transaction.category !== 'Payment')
+  const charges = transactionsInMonth.filter(
+    (transaction) =>
+      transaction.category !== 'Payment' &&
+      transaction.reimbursementStatus !== 'Expense',
+  )
   const totalCharges = charges.reduce((sum, transaction) => sum + transaction.amount, 0)
   const reimbursableTotal = charges
-    .filter((t) => t.isReimbursable)
+    .filter((transaction) => transaction.reimbursementStatus === 'Reimbursable')
     .reduce((sum, t) => sum + t.amount, 0)
   const netCharges = totalCharges - reimbursableTotal
   const remainingBudget = monthlyBudget - netCharges
@@ -70,21 +74,26 @@ export interface ReimbursableStats {
   items: CreditCardTransaction[]
   totalOwed: number
   totalSettled: number
+  totalExpenses: number
 }
 
 export function computeReimbursableStats(
   transactions: CreditCardTransaction[],
 ): ReimbursableStats {
   const items = transactions
-    .filter((t) => t.isReimbursable)
+    .filter((transaction) => transaction.reimbursementStatus === 'Reimbursable')
     .sort((a, b) => b.date.localeCompare(a.date))
 
-  const totalOwed = items
-    .filter((t) => !t.isSettled)
-    .reduce((sum, t) => sum + t.amount, 0)
+  const outstandingReimbursements = items
+    .filter((transaction) => !transaction.isSettled)
+    .reduce((sum, transaction) => sum + transaction.amount, 0)
+  const expenses = transactions
+    .filter((transaction) => transaction.reimbursementStatus === 'Expense')
+    .reduce((sum, transaction) => sum + Math.abs(transaction.amount), 0)
+  const totalOwed = outstandingReimbursements - expenses
   const totalSettled = items
-    .filter((t) => t.isSettled)
-    .reduce((sum, t) => sum + t.amount, 0)
+    .filter((transaction) => transaction.isSettled)
+    .reduce((sum, transaction) => sum + transaction.amount, 0)
 
-  return { items, totalOwed, totalSettled }
+  return { items, totalOwed, totalSettled, totalExpenses: expenses }
 }
