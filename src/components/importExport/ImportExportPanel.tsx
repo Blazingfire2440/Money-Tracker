@@ -8,6 +8,7 @@ import { useSettingsStore } from '@/store/useSettingsStore'
 import { parseBackupPayload } from '@/utils/csv/backupExportImport'
 import { ExportButtons } from './ExportButtons'
 import { CsvImportWizard } from './CsvImportWizard'
+import { PastedTransactionImport } from './PastedTransactionImport'
 
 export function ImportExportPanel() {
   const bulkReplaceDining = useDiningStore((s) => s.bulkReplace)
@@ -65,6 +66,7 @@ export function ImportExportPanel() {
         {error && <p className="mt-2 text-sm text-bad-600">{error}</p>}
       </Card>
 
+      <PastedTransactionImport />
       <CsvImportWizard />
     </div>
   )
