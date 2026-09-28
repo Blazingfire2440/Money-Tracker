@@ -5,6 +5,7 @@ import { Button } from '@/components/common/Button'
 import { useDiningStore } from '@/store/useDiningStore'
 import { useCreditCardStore } from '@/store/useCreditCardStore'
 import { useSettingsStore } from '@/store/useSettingsStore'
+import { SCHEMA_VERSION } from '@/data/defaults'
 import { parseBackupPayload } from '@/utils/csv/backupExportImport'
 import { ExportButtons } from './ExportButtons'
 import { CsvImportWizard } from './CsvImportWizard'
@@ -27,8 +28,16 @@ export function ImportExportPanel() {
       )
       if (!confirmed) return
 
+      const diningTransactions =
+        payload.version < SCHEMA_VERSION
+          ? payload.diningTransactions.map((transaction) => ({
+              ...transaction,
+              amount: -transaction.amount,
+            }))
+          : payload.diningTransactions
+
       await Promise.all([
-        bulkReplaceDining(payload.diningTransactions),
+        bulkReplaceDining(diningTransactions),
         bulkReplaceCreditCard(payload.creditCardTransactions),
         updateSettings(payload.settings),
       ])
@@ -44,7 +53,8 @@ export function ImportExportPanel() {
       <Card>
         <h3 className="mb-3 text-sm font-semibold text-slate-700">Restore Full Backup (JSON)</h3>
         <p className="mb-3 text-xs text-slate-500">
-          Restoring overwrites all current data with the contents of the backup file.
+          Restoring overwrites all current data with the contents of the backup file. Older
+          backups are converted to positive spending amounts.
         </p>
         <Button
           variant="secondary"

@@ -21,10 +21,22 @@ export async function bootstrap() {
 
   await Promise.all([
     settings === undefined ? setSettings(DEFAULT_SETTINGS) : Promise.resolve(),
-    diningTransactions === undefined ? setDiningTransactions([]) : Promise.resolve(),
+    diningTransactions === undefined
+      ? setDiningTransactions([])
+      : schemaVersion !== undefined && schemaVersion < SCHEMA_VERSION
+        ? setDiningTransactions(
+            diningTransactions.map((transaction) => ({
+              ...transaction,
+              amount: -transaction.amount,
+            })),
+          )
+        : Promise.resolve(),
     creditCardTransactions === undefined
       ? setCreditCardTransactions([])
       : Promise.resolve(),
-    schemaVersion === undefined ? setSchemaVersion(SCHEMA_VERSION) : Promise.resolve(),
   ])
+
+  if (schemaVersion === undefined || schemaVersion < SCHEMA_VERSION) {
+    await setSchemaVersion(SCHEMA_VERSION)
+  }
 }

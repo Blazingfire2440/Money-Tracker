@@ -67,8 +67,8 @@ export function QuickEntryDining() {
           step="0.01"
           value={amount}
           onChange={(e) => setAmount(e.target.value)}
-          placeholder="Signed amount"
-          aria-label="Signed amount, negative for spending and positive for refunds"
+          placeholder="Amount (positive for spending)"
+          aria-label="Amount, positive for spending and negative for refunds"
           required
         />
         <Input

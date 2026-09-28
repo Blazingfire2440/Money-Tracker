@@ -1,7 +1,8 @@
 import {
   Area,
-  AreaChart,
   CartesianGrid,
+  ComposedChart,
+  Legend,
   Line,
   ResponsiveContainer,
   Tooltip,
@@ -28,43 +29,54 @@ export function DiningPacingChart({ dailySeries }: DiningPacingChartProps) {
       ) : (
         <div className="h-64 w-full">
           <ResponsiveContainer width="100%" height="100%">
-            <AreaChart data={dailySeries} margin={{ top: 4, right: 8, left: 0, bottom: 0 }}>
-              <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
+            <ComposedChart data={dailySeries} margin={{ top: 4, right: 8, left: 0, bottom: 0 }}>
+              <CartesianGrid strokeDasharray="3 3" stroke="#26354a" />
               <XAxis
                 dataKey="date"
                 tickFormatter={formatDate}
-                tick={{ fontSize: 11, fill: '#64748b' }}
+                tick={{ fontSize: 11, fill: '#94a3b8' }}
                 minTickGap={24}
               />
               <YAxis
                 tickFormatter={(v) => formatCurrency(v)}
-                tick={{ fontSize: 11, fill: '#64748b' }}
+                tick={{ fontSize: 11, fill: '#94a3b8' }}
                 width={64}
+              />
+              <Legend
+                verticalAlign="top"
+                height={28}
+                wrapperStyle={{ color: '#cbd5e1', fontSize: 12 }}
               />
               <Tooltip
                 labelFormatter={(label) => formatDate(String(label))}
-                formatter={(value: number, name: string) => [
-                  formatCurrency(value),
-                  name === 'actualCumulative' ? 'Actual Spend' : 'Linear Target',
-                ]}
+                formatter={(value: number, name: string) => [formatCurrency(value), name]}
+                contentStyle={{
+                  backgroundColor: '#111b2d',
+                  border: '1px solid #3a4b63',
+                  borderRadius: 8,
+                  color: '#f1f5f9',
+                }}
+                labelStyle={{ color: '#cbd5e1' }}
               />
               <Area
                 type="monotone"
                 dataKey="actualCumulative"
-                stroke="#0f172a"
-                fill="#0f172a"
-                fillOpacity={0.08}
+                name="Actual Spend"
+                stroke="#60a5fa"
+                fill="#60a5fa"
+                fillOpacity={0.12}
                 strokeWidth={2}
               />
               <Line
                 type="monotone"
                 dataKey="targetCumulative"
-                stroke="#94a3b8"
+                name="Target Spend"
+                stroke="#fbbf24"
                 strokeDasharray="4 4"
-                strokeWidth={2}
+                strokeWidth={2.5}
                 dot={false}
               />
-            </AreaChart>
+            </ComposedChart>
           </ResponsiveContainer>
         </div>
       )}

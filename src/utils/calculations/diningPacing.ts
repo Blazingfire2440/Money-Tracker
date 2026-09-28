@@ -89,7 +89,7 @@ export function computeDailySeries(
     points.push({
       date: day.toISOString().slice(0, 10),
       actualCumulative: runningTotal,
-      targetCumulative: (planTotal / totalDays) * (dayIndex + 1),
+      targetCumulative: -(planTotal / totalDays) * (dayIndex + 1),
     })
   }
 

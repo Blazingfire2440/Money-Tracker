@@ -113,7 +113,7 @@ export function DataTable<T extends object>({
                 const isEditing = editingId === id
 
                 return (
-                  <tr key={id} className="hover:bg-slate-50">
+                  <tr key={id} className="transaction-row">
                     {columns.map((column) => (
                       <td key={column.key} className={`px-3 py-2 ${column.className ?? ''}`}>
                         {isEditing && column.editable ? (

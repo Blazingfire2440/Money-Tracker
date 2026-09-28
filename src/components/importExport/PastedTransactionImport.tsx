@@ -93,8 +93,8 @@ export function PastedTransactionImport() {
     <Card>
       <h3 className="mb-2 text-sm font-semibold text-slate-700">Paste Transactions</h3>
       <p className="mb-3 text-xs text-slate-500">
-        Paste copied rows from Dining Dollars or a credit-card statement. Dining debits count as
-        positive spending.
+        Paste copied rows from Dining Dollars or a credit-card statement. Dining statement debits
+        are converted to positive spending and refunds to negative amounts.
       </p>
 
       <div className="flex flex-col gap-3">

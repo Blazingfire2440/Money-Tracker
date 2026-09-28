@@ -129,6 +129,10 @@ body {
   background-color: rgb(239 68 68 / 20%);
 }
 
+.transaction-row:hover {
+  background-color: #1b2940;
+}
+
 .hover\:text-slate-700:hover {
   color: #f1f5f9;
 }

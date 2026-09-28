@@ -91,9 +91,9 @@ export function applyImportMapping(
     const rawNotes = mapping.notes ? row[mapping.notes] : undefined
 
     const date = rawDate ? tryParseDate(rawDate) : null
-    const amount = rawAmount ? parseCurrencyAmount(rawAmount) : null
+    const parsedAmount = rawAmount ? parseCurrencyAmount(rawAmount) : null
 
-    if (!date || !rawLocation?.trim() || amount === null) {
+    if (!date || !rawLocation?.trim() || parsedAmount === null) {
       return {
         transaction: null,
         error: 'Could not parse date, location, or amount for this row',
@@ -104,7 +104,10 @@ export function applyImportMapping(
     const account = (rawAccount?.trim() || fixedAccount || '').trim()
 
     const isDuplicate = existing.some(
-      (t) => t.date === date && t.location === rawLocation.trim() && t.amount === amount,
+      (t) =>
+        t.date === date &&
+        t.location === rawLocation.trim() &&
+        t.amount === -parsedAmount,
     )
 
     return {
@@ -112,7 +115,7 @@ export function applyImportMapping(
         id: createId(),
         date,
         location: rawLocation.trim(),
-        amount,
+        amount: -parsedAmount,
         account,
         notes: rawNotes?.trim() || undefined,
       },

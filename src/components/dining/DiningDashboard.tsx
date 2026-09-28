@@ -20,7 +20,7 @@ export function DiningDashboard() {
   )
 
   const spent = useMemo(
-    () => balanceTransactions.reduce((sum, transaction) => sum - transaction.amount, 0),
+    () => balanceTransactions.reduce((sum, transaction) => sum + transaction.amount, 0),
     [balanceTransactions],
   )
   const remaining = settings.diningPlanTotal - spent
