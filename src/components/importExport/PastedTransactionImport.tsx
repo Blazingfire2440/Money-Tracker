@@ -93,7 +93,8 @@ export function PastedTransactionImport() {
     <Card>
       <h3 className="mb-2 text-sm font-semibold text-slate-700">Paste Transactions</h3>
       <p className="mb-3 text-xs text-slate-500">
-        Paste copied rows from Dining Dollars or a credit-card statement.
+        Paste copied rows from Dining Dollars or a credit-card statement. Dining debits count as
+        positive spending.
       </p>
 
       <div className="flex flex-col gap-3">
@@ -124,7 +125,7 @@ export function PastedTransactionImport() {
             placeholder={
               kind === 'dining'
                 ? 'Account\\tDate and time\\tLocation\\tAmount'
-                : 'Aug 27 Aug 28 MERCHANT NAME CITY ST $25.19'
+                : 'Sep 24\\nAmtrak\\nOther Travel\\nTanner V. ...8483\\n$63.75'
             }
             aria-label="Pasted transaction rows"
           />

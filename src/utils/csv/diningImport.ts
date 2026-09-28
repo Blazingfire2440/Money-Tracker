@@ -6,7 +6,6 @@ import { parseCurrencyAmount } from './currencyParser'
 export interface ImportOptions {
   mapping: Partial<Record<DiningField, string>>
   fixedAccount?: string
-  invertAmount?: boolean
 }
 
 export interface ImportRowResult {
@@ -82,7 +81,7 @@ export function applyImportMapping(
   options: ImportOptions,
   existing: DiningTransaction[],
 ): ImportRowResult[] {
-  const { mapping, fixedAccount, invertAmount } = options
+  const { mapping, fixedAccount } = options
 
   return rows.map((row) => {
     const rawDate = mapping.date ? row[mapping.date] : undefined
@@ -92,8 +91,8 @@ export function applyImportMapping(
     const rawNotes = mapping.notes ? row[mapping.notes] : undefined
 
     const date = rawDate ? tryParseDate(rawDate) : null
-    let amount = rawAmount ? (parseCurrencyAmount(rawAmount) ?? NaN) : NaN
-    if (invertAmount && !Number.isNaN(amount)) amount = -amount
+    const parsedAmount = rawAmount ? parseCurrencyAmount(rawAmount) : null
+    const amount = parsedAmount === null ? NaN : Math.abs(parsedAmount)
 
     if (!date || !rawLocation?.trim() || !Number.isFinite(amount)) {
       return {

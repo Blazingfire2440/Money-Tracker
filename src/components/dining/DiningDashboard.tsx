@@ -1,5 +1,6 @@
 import { useMemo } from 'react'
 import { DiningOverviewCards } from './DiningOverviewCards'
+import { RolloverTargetPanel } from './RolloverTargetPanel'
 import { TodaysNumbersPanel } from './TodaysNumbersPanel'
 import { OnTrackPacingPanel } from './OnTrackPacingPanel'
 import { DiningPacingChart } from './DiningPacingChart'
@@ -56,6 +57,7 @@ export function DiningDashboard() {
         spent={spent}
         remaining={remaining}
       />
+      <RolloverTargetPanel remaining={remaining} />
       <TodaysNumbersPanel stats={semesterStats} />
       <OnTrackPacingPanel stats={pacingStats} />
       <DiningPacingChart dailySeries={dailySeries} />

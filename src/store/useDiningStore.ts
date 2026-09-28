@@ -14,17 +14,32 @@ interface DiningStore {
   bulkAdd: (transactions: DiningTransaction[]) => Promise<void>
 }
 
+function normalizeTransactions(transactions: DiningTransaction[]): DiningTransaction[] {
+  return transactions.map((transaction) => ({
+    ...transaction,
+    amount: Math.abs(transaction.amount),
+  }))
+}
+
 export const useDiningStore = create<DiningStore>((set, get) => ({
   transactions: [],
   isLoaded: false,
 
   hydrate: async () => {
-    const transactions = (await getDiningTransactions()) ?? []
+    const storedTransactions = (await getDiningTransactions()) ?? []
+    const transactions = normalizeTransactions(storedTransactions)
     set({ transactions, isLoaded: true })
+    if (transactions.some((transaction, index) => transaction.amount !== storedTransactions[index].amount)) {
+      await setDiningTransactions(transactions)
+    }
   },
 
   add: async (input) => {
-    const transaction: DiningTransaction = { ...input, id: createId() }
+    const transaction: DiningTransaction = {
+      ...input,
+      amount: Math.abs(input.amount),
+      id: createId(),
+    }
     const transactions = [transaction, ...get().transactions]
     set({ transactions })
     await setDiningTransactions(transactions)
@@ -32,7 +47,13 @@ export const useDiningStore = create<DiningStore>((set, get) => ({
 
   update: async (id, patch) => {
     const transactions = get().transactions.map((t) =>
-      t.id === id ? { ...t, ...patch } : t,
+      t.id === id
+        ? {
+            ...t,
+            ...patch,
+            amount: patch.amount === undefined ? t.amount : Math.abs(patch.amount),
+          }
+        : t,
     )
     set({ transactions })
     await setDiningTransactions(transactions)
@@ -45,12 +66,13 @@ export const useDiningStore = create<DiningStore>((set, get) => ({
   },
 
   bulkReplace: async (transactions) => {
-    set({ transactions })
-    await setDiningTransactions(transactions)
+    const normalizedTransactions = normalizeTransactions(transactions)
+    set({ transactions: normalizedTransactions })
+    await setDiningTransactions(normalizedTransactions)
   },
 
   bulkAdd: async (newTransactions) => {
-    const transactions = [...newTransactions, ...get().transactions]
+    const transactions = [...normalizeTransactions(newTransactions), ...get().transactions]
     set({ transactions })
     await setDiningTransactions(transactions)
   },

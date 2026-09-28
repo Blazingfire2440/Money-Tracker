@@ -15,8 +15,11 @@ export interface MonthlyBudgetStats {
 }
 
 export function getMonthKey(date: Date): string {
-  const y = date.getFullYear()
-  const m = String(date.getMonth() + 1).padStart(2, '0')
+  const budgetStart = date.getDate() < 19
+    ? new Date(date.getFullYear(), date.getMonth() - 1, 1)
+    : date
+  const y = budgetStart.getFullYear()
+  const m = String(budgetStart.getMonth() + 1).padStart(2, '0')
   return `${y}-${m}`
 }
 
@@ -24,7 +27,7 @@ export function filterTransactionsByMonth(
   transactions: CreditCardTransaction[],
   monthKey: string,
 ): CreditCardTransaction[] {
-  return transactions.filter((t) => t.date.slice(0, 7) === monthKey)
+  return transactions.filter((transaction) => dateToMonthKey(transaction.date) === monthKey)
 }
 
 export function colorForPercent(percentUsed: number): BudgetColor {
@@ -37,8 +40,9 @@ export function computeMonthlyBudgetStats(
   transactionsInMonth: CreditCardTransaction[],
   monthlyBudget: number,
 ): MonthlyBudgetStats {
-  const totalCharges = transactionsInMonth.reduce((sum, t) => sum + t.amount, 0)
-  const reimbursableTotal = transactionsInMonth
+  const charges = transactionsInMonth.filter((transaction) => transaction.category !== 'Payment')
+  const totalCharges = charges.reduce((sum, transaction) => sum + transaction.amount, 0)
+  const reimbursableTotal = charges
     .filter((t) => t.isReimbursable)
     .reduce((sum, t) => sum + t.amount, 0)
   const netCharges = totalCharges - reimbursableTotal

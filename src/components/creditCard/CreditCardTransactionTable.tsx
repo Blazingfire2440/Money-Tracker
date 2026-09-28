@@ -2,7 +2,7 @@ import { Card } from '@/components/common/Card'
 import { Badge } from '@/components/common/Badge'
 import { DataTable, type Column } from '@/components/table/DataTable'
 import { useCreditCardStore } from '@/store/useCreditCardStore'
-import { CREDIT_CARD_CATEGORIES, type CreditCardTransaction } from '@/types'
+import { getCreditCardCategories, type CreditCardTransaction } from '@/types'
 import { formatCurrency } from '@/utils/formatters'
 
 const columns: Column<CreditCardTransaction>[] = [
@@ -13,7 +13,7 @@ const columns: Column<CreditCardTransaction>[] = [
     label: 'Category',
     editable: true,
     inputType: 'select',
-    options: [...CREDIT_CARD_CATEGORIES],
+    options: [],
   },
   {
     key: 'amount',
@@ -39,12 +39,22 @@ export function CreditCardTransactionTable() {
   const transactions = useCreditCardStore((s) => s.transactions)
   const update = useCreditCardStore((s) => s.update)
   const remove = useCreditCardStore((s) => s.remove)
+  const transactionColumns = columns.map((column) =>
+    column.key === 'category'
+      ? {
+          ...column,
+          options: getCreditCardCategories(
+            transactions.map((transaction) => transaction.category),
+          ),
+        }
+      : column,
+  )
 
   return (
     <Card>
       <h3 className="mb-3 text-sm font-semibold text-slate-700">Credit Card Transactions</h3>
       <DataTable
-        columns={columns}
+        columns={transactionColumns}
         rows={transactions}
         getRowId={(row) => row.id}
         onEditRow={(id, patch) => update(id, patch)}

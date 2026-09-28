@@ -1,4 +1,8 @@
-import { CREDIT_CARD_CATEGORIES, type CreditCardCategory, type CreditCardTransaction } from '@/types'
+import {
+  getCreditCardCategories,
+  type CreditCardCategory,
+  type CreditCardTransaction,
+} from '@/types'
 import { CATEGORY_COLORS } from '@/constants/categories'
 
 export interface CategoryStat {
@@ -12,16 +16,23 @@ export interface CategoryStat {
 export function computeCategoryBreakdown(
   transactionsInMonth: CreditCardTransaction[],
 ): CategoryStat[] {
-  const totalCharges = transactionsInMonth.reduce((sum, t) => sum + t.amount, 0)
+  const charges = transactionsInMonth.filter((transaction) => transaction.category !== 'Payment')
+  const totalCharges = charges.reduce((sum, transaction) => sum + transaction.amount, 0)
 
-  const stats = CREDIT_CARD_CATEGORIES.map((category) => {
-    const matching = transactionsInMonth.filter((t) => t.category === category)
+  const categories = getCreditCardCategories(
+    transactionsInMonth.map((transaction) => transaction.category),
+  )
+  const stats = categories.map((category) => {
+    const matching =
+      category === 'Payment'
+        ? []
+        : charges.filter((transaction) => transaction.category === category)
     const total = matching.reduce((sum, t) => sum + t.amount, 0)
     return {
       category,
       total,
       percentOfTotal: totalCharges > 0 ? (total / totalCharges) * 100 : 0,
-      color: CATEGORY_COLORS[category],
+      color: CATEGORY_COLORS[category] ?? '#64748b',
       count: matching.length,
     }
   })

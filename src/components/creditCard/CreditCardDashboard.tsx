@@ -8,6 +8,7 @@ import { useSettingsStore } from '@/store/useSettingsStore'
 import { useUIStore } from '@/store/useUIStore'
 import { computeMonthlyBudgetStats, filterTransactionsByMonth } from '@/utils/calculations/creditCardBudget'
 import { computeCategoryBreakdown } from '@/utils/calculations/categoryBreakdown'
+import { formatBudgetPeriodLabel } from '@/utils/formatters'
 
 export function CreditCardDashboard() {
   const transactions = useCreditCardStore((s) => s.transactions)
@@ -35,7 +36,11 @@ export function CreditCardDashboard() {
       <div className="flex justify-end">
         <MonthSelector monthKey={selectedMonth} onChange={setSelectedMonth} />
       </div>
-      <MonthlyBudgetPanel stats={budgetStats} monthlyBudget={settings.monthlyCreditCardBudget} />
+      <MonthlyBudgetPanel
+        stats={budgetStats}
+        monthlyBudget={settings.monthlyCreditCardBudget}
+        budgetPeriod={formatBudgetPeriodLabel(selectedMonth)}
+      />
       <CategoryBreakdownPanel stats={categoryStats} />
       <ReimbursableTracker />
     </div>

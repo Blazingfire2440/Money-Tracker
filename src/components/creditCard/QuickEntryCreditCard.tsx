@@ -6,7 +6,7 @@ import { Select } from '@/components/common/Select'
 import { Checkbox } from '@/components/common/Checkbox'
 import { Button } from '@/components/common/Button'
 import { useCreditCardStore } from '@/store/useCreditCardStore'
-import { CREDIT_CARD_CATEGORIES, type CreditCardCategory } from '@/types'
+import { getCreditCardCategories, type CreditCardCategory } from '@/types'
 
 function todayLocalDate(): string {
   const now = new Date()
@@ -16,6 +16,8 @@ function todayLocalDate(): string {
 
 export function QuickEntryCreditCard() {
   const add = useCreditCardStore((s) => s.add)
+  const transactions = useCreditCardStore((s) => s.transactions)
+  const categories = getCreditCardCategories(transactions.map((transaction) => transaction.category))
   const locationRef = useRef<HTMLInputElement>(null)
 
   const [date, setDate] = useState(todayLocalDate)
@@ -74,7 +76,7 @@ export function QuickEntryCreditCard() {
           onChange={(e) => setCategory(e.target.value as CreditCardCategory)}
           aria-label="Category"
         >
-          {CREDIT_CARD_CATEGORIES.map((c) => (
+          {categories.map((c) => (
             <option key={c} value={c}>
               {c}
             </option>

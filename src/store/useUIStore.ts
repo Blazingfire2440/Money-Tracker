@@ -1,4 +1,5 @@
 import { create } from 'zustand'
+import { getMonthKey } from '@/utils/calculations/creditCardBudget'
 
 export type TabKey = 'dining' | 'creditCard' | 'settings' | 'importExport'
 
@@ -23,6 +24,6 @@ export const useUIStore = create<UIStore>((set) => ({
     window.location.hash = tab
     set({ activeTab: tab })
   },
-  selectedMonth: new Date().toISOString().slice(0, 7),
+  selectedMonth: getMonthKey(new Date()),
   setSelectedMonth: (month) => set({ selectedMonth: month }),
 }))
