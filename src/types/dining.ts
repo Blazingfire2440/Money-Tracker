@@ -1,3 +1,5 @@
+export const DINING_BALANCE_ACCOUNT = 'First Year Limited PCV'
+
 export interface DiningTransaction {
   id: string
   date: string // YYYY-MM-DD HH:mm

@@ -7,15 +7,21 @@ import { formatCurrency, formatPercent } from '@/utils/formatters'
 interface MonthlyBudgetPanelProps {
   stats: MonthlyBudgetStats
   monthlyBudget: number
+  budgetPeriod: string
 }
 
 const badgeTone = { good: 'good', warn: 'warn', bad: 'bad' } as const
 
-export function MonthlyBudgetPanel({ stats, monthlyBudget }: MonthlyBudgetPanelProps) {
+export function MonthlyBudgetPanel({ stats, monthlyBudget, budgetPeriod }: MonthlyBudgetPanelProps) {
   return (
     <Card>
-      <div className="mb-3 flex items-center justify-between">
-        <h3 className="text-sm font-semibold text-slate-700">Monthly Budget Progress</h3>
+      <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
+        <div>
+          <h3 className="text-sm font-semibold text-slate-700">Monthly Budget Progress</h3>
+          <p className="mt-1 text-xs text-slate-500">
+            Budget period: {budgetPeriod} (the 19th through the 18th)
+          </p>
+        </div>
         <Badge tone={badgeTone[stats.color]}>{formatPercent(stats.percentUsed)} used</Badge>
       </div>
 

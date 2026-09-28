@@ -2,7 +2,11 @@ import { Card } from '@/components/common/Card'
 import { Badge } from '@/components/common/Badge'
 import { DataTable, type Column } from '@/components/table/DataTable'
 import { useCreditCardStore } from '@/store/useCreditCardStore'
-import { CREDIT_CARD_CATEGORIES, type CreditCardTransaction } from '@/types'
+import {
+  getCreditCardCategories,
+  REIMBURSEMENT_STATUSES,
+  type CreditCardTransaction,
+} from '@/types'
 import { formatCurrency } from '@/utils/formatters'
 
 const columns: Column<CreditCardTransaction>[] = [
@@ -13,7 +17,7 @@ const columns: Column<CreditCardTransaction>[] = [
     label: 'Category',
     editable: true,
     inputType: 'select',
-    options: [...CREDIT_CARD_CATEGORIES],
+    options: [],
   },
   {
     key: 'amount',
@@ -26,11 +30,17 @@ const columns: Column<CreditCardTransaction>[] = [
   },
   { key: 'reason', label: 'Reason', editable: true, inputType: 'text' },
   {
-    key: 'isReimbursable',
-    label: 'Reimbursable',
+    key: 'reimbursementStatus',
+    label: 'Reimbursement',
     editable: true,
-    inputType: 'checkbox',
-    render: (row) => (row.isReimbursable ? <Badge tone="warn">Reimbursable</Badge> : null),
+    inputType: 'select',
+    options: [...REIMBURSEMENT_STATUSES],
+    render: (row) =>
+      row.reimbursementStatus === 'Not reimbursable' ? null : (
+        <Badge tone={row.reimbursementStatus === 'Expense' ? 'bad' : 'warn'}>
+          {row.reimbursementStatus}
+        </Badge>
+      ),
   },
   { key: 'paymentMethod', label: 'Payment', editable: true, inputType: 'text' },
 ]
@@ -39,18 +49,28 @@ export function CreditCardTransactionTable() {
   const transactions = useCreditCardStore((s) => s.transactions)
   const update = useCreditCardStore((s) => s.update)
   const remove = useCreditCardStore((s) => s.remove)
+  const transactionColumns = columns.map((column) =>
+    column.key === 'category'
+      ? {
+          ...column,
+          options: getCreditCardCategories(
+            transactions.map((transaction) => transaction.category),
+          ),
+        }
+      : column,
+  )
 
   return (
     <Card>
       <h3 className="mb-3 text-sm font-semibold text-slate-700">Credit Card Transactions</h3>
       <DataTable
-        columns={columns}
+        columns={transactionColumns}
         rows={transactions}
         getRowId={(row) => row.id}
         onEditRow={(id, patch) => update(id, patch)}
         onDeleteRow={(id) => remove(id)}
         getSearchableText={(row) =>
-          `${row.date} ${row.location} ${row.category} ${row.reason} ${row.paymentMethod}`
+          `${row.date} ${row.location} ${row.category} ${row.reason} ${row.paymentMethod} ${row.reimbursementStatus}`
         }
         emptyTitle="No credit card transactions yet"
         emptyDescription="Add your first charge above."

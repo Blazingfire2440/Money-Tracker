@@ -1,11 +1,11 @@
 import { createId } from '@/utils/id'
 import type { DiningTransaction } from '@/types'
 import type { DiningField } from './columnDetection'
+import { parseCurrencyAmount } from './currencyParser'
 
 export interface ImportOptions {
   mapping: Partial<Record<DiningField, string>>
   fixedAccount?: string
-  invertAmount?: boolean
 }
 
 export interface ImportRowResult {
@@ -14,27 +14,66 @@ export interface ImportRowResult {
   isDuplicate: boolean
 }
 
-const DATE_PATTERNS: RegExp[] = [
-  /^(\d{4})-(\d{2})-(\d{2})(?:[ T](\d{2}):(\d{2}))?/, // YYYY-MM-DD[ HH:mm]
-  /^(\d{1,2})\/(\d{1,2})\/(\d{4})(?:[ T](\d{1,2}):(\d{2}))?/, // M/D/YYYY[ H:mm]
-]
-
 function tryParseDate(raw: string): string | null {
   const trimmed = raw.trim()
-
-  const isoMatch = trimmed.match(DATE_PATTERNS[0])
+  const isoMatch = trimmed.match(
+    /^(\d{4})-(\d{1,2})-(\d{1,2})(?:[ T](\d{1,2}):(\d{2})(?::\d{2})?(?:\s*(AM|PM))?)?/i,
+  )
   if (isoMatch) {
-    const [, y, m, d, h, min] = isoMatch
-    return `${y}-${m}-${d} ${h ?? '00'}:${min ?? '00'}`
+    const [, year, month, day, rawHour = '00', minute = '00', meridiem] = isoMatch
+    let hour = Number(rawHour)
+    if (meridiem) {
+      if (hour < 1 || hour > 12) return null
+      hour = (hour % 12) + (meridiem.toUpperCase() === 'PM' ? 12 : 0)
+    }
+    return formatDateTime(Number(year), Number(month), Number(day), hour, Number(minute))
   }
 
-  const usMatch = trimmed.match(DATE_PATTERNS[1])
+  const usMatch = trimmed.match(
+    /^(\d{1,2})\/(\d{1,2})\/(\d{4}|\d{2})(?:[ T](\d{1,2}):(\d{2})(?::\d{2})?(?:\s*(AM|PM))?)?/i,
+  )
   if (usMatch) {
-    const [, m, d, y, h, min] = usMatch
-    return `${y}-${m.padStart(2, '0')}-${d.padStart(2, '0')} ${(h ?? '00').padStart(2, '0')}:${min ?? '00'}`
+    const [, month, day, rawYear, rawHour = '00', minute = '00', meridiem] = usMatch
+    const year = rawYear.length === 2 ? 2000 + Number(rawYear) : Number(rawYear)
+    let hour = Number(rawHour)
+
+    if (meridiem) {
+      if (hour < 1 || hour > 12) return null
+      hour = (hour % 12) + (meridiem.toUpperCase() === 'PM' ? 12 : 0)
+    }
+
+    return formatDateTime(year, Number(month), Number(day), hour, Number(minute))
   }
 
   return null
+}
+
+function formatDateTime(year: number, month: number, day: number, hour: number, minute: number) {
+  const date = new Date(year, month - 1, day)
+  if (
+    date.getFullYear() !== year ||
+    date.getMonth() !== month - 1 ||
+    date.getDate() !== day ||
+    hour < 0 ||
+    hour > 23 ||
+    minute < 0 ||
+    minute > 59
+  ) {
+    return null
+  }
+
+  const pad = (value: number) => String(value).padStart(2, '0')
+  return `${year}-${pad(month)}-${pad(day)} ${pad(hour)}:${pad(minute)}`
+}
+
+export function parseDiningPasteRows(text: string): Record<string, string>[] {
+  return text
+    .split(/\r?\n/)
+    .filter((line) => line.trim().length > 0)
+    .map((line) => {
+      const [account = '', date = '', location = '', amount = ''] = line.split('\t')
+      return { account, date, location, amount }
+    })
 }
 
 export function applyImportMapping(
@@ -42,7 +81,7 @@ export function applyImportMapping(
   options: ImportOptions,
   existing: DiningTransaction[],
 ): ImportRowResult[] {
-  const { mapping, fixedAccount, invertAmount } = options
+  const { mapping, fixedAccount } = options
 
   return rows.map((row) => {
     const rawDate = mapping.date ? row[mapping.date] : undefined
@@ -52,10 +91,9 @@ export function applyImportMapping(
     const rawNotes = mapping.notes ? row[mapping.notes] : undefined
 
     const date = rawDate ? tryParseDate(rawDate) : null
-    let amount = rawAmount ? parseFloat(rawAmount.replace(/[^0-9.-]/g, '')) : NaN
-    if (invertAmount && !Number.isNaN(amount)) amount = -amount
+    const amount = rawAmount ? parseCurrencyAmount(rawAmount) : null
 
-    if (!date || !rawLocation?.trim() || Number.isNaN(amount)) {
+    if (!date || !rawLocation?.trim() || amount === null) {
       return {
         transaction: null,
         error: 'Could not parse date, location, or amount for this row',

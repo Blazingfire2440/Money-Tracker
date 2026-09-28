@@ -30,7 +30,6 @@ export function CsvImportWizard() {
   const [parsed, setParsed] = useState<ParsedCsv | null>(null)
   const [mapping, setMapping] = useState<Partial<Record<DiningField, string>>>({})
   const [fixedAccount, setFixedAccount] = useState('')
-  const [invertAmount, setInvertAmount] = useState(false)
   const [skipDuplicates, setSkipDuplicates] = useState(true)
 
   async function handleFile(file: File) {
@@ -42,8 +41,8 @@ export function CsvImportWizard() {
   }
 
   const importOptions: ImportOptions = useMemo(
-    () => ({ mapping, fixedAccount: fixedAccount || undefined, invertAmount }),
-    [mapping, fixedAccount, invertAmount],
+    () => ({ mapping, fixedAccount: fixedAccount || undefined }),
+    [mapping, fixedAccount],
   )
 
   const results = useMemo(() => {
@@ -60,7 +59,6 @@ export function CsvImportWizard() {
     setParsed(null)
     setMapping({})
     setFixedAccount('')
-    setInvertAmount(false)
   }
 
   function handleConfirm() {
@@ -76,6 +74,9 @@ export function CsvImportWizard() {
       <h3 className="mb-3 text-sm font-semibold text-slate-700">
         Import Dining Dollars (GET Portal CSV)
       </h3>
+      <p className="mb-3 text-xs text-slate-500">
+        Debit amounts are automatically counted as positive spending.
+      </p>
 
       {step === 'upload' && (
         <label className="flex cursor-pointer flex-col items-center gap-2 rounded-lg border-2 border-dashed border-slate-300 px-4 py-8 text-sm text-slate-500 hover:border-slate-400">
@@ -129,11 +130,6 @@ export function CsvImportWizard() {
             </label>
           )}
 
-          <Checkbox
-            label="Invert amount sign (debits shown as negative)"
-            checked={invertAmount}
-            onChange={(e) => setInvertAmount(e.target.checked)}
-          />
           <Checkbox
             label="Skip likely duplicates"
             checked={skipDuplicates}

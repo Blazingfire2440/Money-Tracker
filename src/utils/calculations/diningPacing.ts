@@ -82,7 +82,7 @@ export function computeDailySeries(
       txIndex < sortedByDate.length &&
       startOfDay(parseISO(sortedByDate[txIndex].date)) < dayEnd
     ) {
-      runningTotal += sortedByDate[txIndex].amount
+      runningTotal -= sortedByDate[txIndex].amount
       txIndex++
     }
 

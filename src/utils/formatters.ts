@@ -34,3 +34,12 @@ export function formatMonthLabel(monthKey: string): string {
     year: 'numeric',
   })
 }
+
+export function formatBudgetPeriodLabel(monthKey: string): string {
+  const [year, month] = monthKey.split('-').map(Number)
+  const start = new Date(year, month - 1, 19)
+  const end = new Date(year, month, 18)
+  const formatDateRangeEnd = (date: Date) =>
+    date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
+  return `${formatDateRangeEnd(start)} – ${formatDateRangeEnd(end)}, ${end.getFullYear()}`
+}

@@ -3,10 +3,15 @@ import { Plus } from 'lucide-react'
 import { Card } from '@/components/common/Card'
 import { Input } from '@/components/common/Input'
 import { Select } from '@/components/common/Select'
-import { Checkbox } from '@/components/common/Checkbox'
 import { Button } from '@/components/common/Button'
 import { useCreditCardStore } from '@/store/useCreditCardStore'
-import { CREDIT_CARD_CATEGORIES, type CreditCardCategory } from '@/types'
+import {
+  CREDIT_CARD_PAYMENT_METHOD,
+  getCreditCardCategories,
+  REIMBURSEMENT_STATUSES,
+  type ReimbursementStatus,
+  type CreditCardCategory,
+} from '@/types'
 
 function todayLocalDate(): string {
   const now = new Date()
@@ -16,6 +21,12 @@ function todayLocalDate(): string {
 
 export function QuickEntryCreditCard() {
   const add = useCreditCardStore((s) => s.add)
+  const transactions = useCreditCardStore((s) => s.transactions)
+  const categories = getCreditCardCategories(
+    transactions
+      .map((transaction) => transaction.category)
+      .filter((existingCategory) => existingCategory !== 'N/A'),
+  )
   const locationRef = useRef<HTMLInputElement>(null)
 
   const [date, setDate] = useState(todayLocalDate)
@@ -23,21 +34,23 @@ export function QuickEntryCreditCard() {
   const [category, setCategory] = useState<CreditCardCategory>('Dining')
   const [amount, setAmount] = useState('')
   const [reason, setReason] = useState('')
-  const [isReimbursable, setIsReimbursable] = useState(false)
-  const [paymentMethod, setPaymentMethod] = useState('Credit Card')
+  const [reimbursementStatus, setReimbursementStatus] =
+    useState<ReimbursementStatus>('Not reimbursable')
+  const [paymentMethod, setPaymentMethod] = useState(CREDIT_CARD_PAYMENT_METHOD)
+  const isExpense = reimbursementStatus === 'Expense'
 
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
     const parsedAmount = parseFloat(amount)
-    if (!location.trim() || Number.isNaN(parsedAmount)) return
+    if (!location.trim() || !Number.isFinite(parsedAmount)) return
 
     void add({
       date,
       location: location.trim(),
-      category,
-      amount: parsedAmount,
+      category: isExpense ? 'N/A' : category,
+      amount: isExpense ? Math.abs(parsedAmount) : parsedAmount,
       reason: reason.trim(),
-      isReimbursable,
+      reimbursementStatus,
       paymentMethod: paymentMethod.trim(),
     })
 
@@ -45,7 +58,8 @@ export function QuickEntryCreditCard() {
     setLocation('')
     setAmount('')
     setReason('')
-    setIsReimbursable(false)
+    setReimbursementStatus('Not reimbursable')
+    setPaymentMethod(CREDIT_CARD_PAYMENT_METHOD)
     locationRef.current?.focus()
   }
 
@@ -70,11 +84,13 @@ export function QuickEntryCreditCard() {
           required
         />
         <Select
-          value={category}
+          value={isExpense ? 'N/A' : category}
           onChange={(e) => setCategory(e.target.value as CreditCardCategory)}
           aria-label="Category"
+          disabled={isExpense}
         >
-          {CREDIT_CARD_CATEGORIES.map((c) => (
+          {isExpense && <option value="N/A">N/A</option>}
+          {categories.map((c) => (
             <option key={c} value={c}>
               {c}
             </option>
@@ -98,17 +114,26 @@ export function QuickEntryCreditCard() {
         />
         <Input
           type="text"
-          value={paymentMethod}
           onChange={(e) => setPaymentMethod(e.target.value)}
           placeholder="Payment method"
           aria-label="Payment method"
+          value={paymentMethod}
         />
         <div className="sm:col-span-6 flex items-center justify-between">
-          <Checkbox
-            label="Reimbursable"
-            checked={isReimbursable}
-            onChange={(e) => setIsReimbursable(e.target.checked)}
-          />
+          <label className="flex items-center gap-2 text-sm text-slate-600">
+            Reimbursement
+            <Select
+              value={reimbursementStatus}
+              onChange={(e) => setReimbursementStatus(e.target.value as ReimbursementStatus)}
+              aria-label="Reimbursement status"
+            >
+              {REIMBURSEMENT_STATUSES.map((status) => (
+                <option key={status} value={status}>
+                  {status}
+                </option>
+              ))}
+            </Select>
+          </label>
           <Button type="submit">
             <Plus size={16} />
             Add Transaction

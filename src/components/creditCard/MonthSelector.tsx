@@ -1,5 +1,5 @@
 import { ChevronLeft, ChevronRight } from 'lucide-react'
-import { formatMonthLabel } from '@/utils/formatters'
+import { formatBudgetPeriodLabel } from '@/utils/formatters'
 
 interface MonthSelectorProps {
   monthKey: string
@@ -18,17 +18,17 @@ export function MonthSelector({ monthKey, onChange }: MonthSelectorProps) {
       <button
         onClick={() => onChange(shiftMonth(monthKey, -1))}
         className="rounded-md p-1.5 text-slate-500 hover:bg-slate-100"
-        aria-label="Previous month"
+        aria-label="Previous budget period"
       >
         <ChevronLeft size={18} />
       </button>
       <span className="min-w-[10rem] text-center text-sm font-semibold text-slate-900">
-        {formatMonthLabel(monthKey)}
+        {formatBudgetPeriodLabel(monthKey)}
       </span>
       <button
         onClick={() => onChange(shiftMonth(monthKey, 1))}
         className="rounded-md p-1.5 text-slate-500 hover:bg-slate-100"
-        aria-label="Next month"
+        aria-label="Next budget period"
       >
         <ChevronRight size={18} />
       </button>

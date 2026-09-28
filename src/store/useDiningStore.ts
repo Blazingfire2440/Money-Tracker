@@ -24,7 +24,10 @@ export const useDiningStore = create<DiningStore>((set, get) => ({
   },
 
   add: async (input) => {
-    const transaction: DiningTransaction = { ...input, id: createId() }
+    const transaction: DiningTransaction = {
+      ...input,
+      id: createId(),
+    }
     const transactions = [transaction, ...get().transactions]
     set({ transactions })
     await setDiningTransactions(transactions)
@@ -32,7 +35,12 @@ export const useDiningStore = create<DiningStore>((set, get) => ({
 
   update: async (id, patch) => {
     const transactions = get().transactions.map((t) =>
-      t.id === id ? { ...t, ...patch } : t,
+      t.id === id
+        ? {
+            ...t,
+            ...patch,
+          }
+        : t,
     )
     set({ transactions })
     await setDiningTransactions(transactions)
@@ -50,8 +58,8 @@ export const useDiningStore = create<DiningStore>((set, get) => ({
   },
 
   bulkAdd: async (newTransactions) => {
-    const transactions = [...newTransactions, ...get().transactions]
-    set({ transactions })
-    await setDiningTransactions(transactions)
+    const updatedTransactions = [...newTransactions, ...get().transactions]
+    set({ transactions: updatedTransactions })
+    await setDiningTransactions(updatedTransactions)
   },
 }))
