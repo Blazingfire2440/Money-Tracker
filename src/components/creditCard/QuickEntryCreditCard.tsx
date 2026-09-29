@@ -8,7 +8,6 @@ import { useCreditCardStore } from '@/store/useCreditCardStore'
 import {
   CREDIT_CARD_PAYMENT_METHOD,
   getCreditCardCategories,
-  REIMBURSEMENT_STATUSES,
   type ReimbursementStatus,
   type CreditCardCategory,
 } from '@/types'
@@ -37,7 +36,6 @@ export function QuickEntryCreditCard() {
   const [reimbursementStatus, setReimbursementStatus] =
     useState<ReimbursementStatus>('Not reimbursable')
   const [paymentMethod, setPaymentMethod] = useState(CREDIT_CARD_PAYMENT_METHOD)
-  const isExpense = reimbursementStatus === 'Expense'
 
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
@@ -47,8 +45,8 @@ export function QuickEntryCreditCard() {
     void add({
       date,
       location: location.trim(),
-      category: isExpense ? 'N/A' : category,
-      amount: isExpense ? Math.abs(parsedAmount) : parsedAmount,
+      category,
+      amount: parsedAmount,
       reason: reason.trim(),
       reimbursementStatus,
       paymentMethod: paymentMethod.trim(),
@@ -84,12 +82,10 @@ export function QuickEntryCreditCard() {
           required
         />
         <Select
-          value={isExpense ? 'N/A' : category}
+          value={category}
           onChange={(e) => setCategory(e.target.value as CreditCardCategory)}
           aria-label="Category"
-          disabled={isExpense}
         >
-          {isExpense && <option value="N/A">N/A</option>}
           {categories.map((c) => (
             <option key={c} value={c}>
               {c}
@@ -114,10 +110,10 @@ export function QuickEntryCreditCard() {
         />
         <Input
           type="text"
-          onChange={(e) => setPaymentMethod(e.target.value)}
+          value={paymentMethod}
+          onChange={(event) => setPaymentMethod(event.target.value)}
           placeholder="Payment method"
           aria-label="Payment method"
-          value={paymentMethod}
         />
         <div className="sm:col-span-6 flex items-center justify-between">
           <label className="flex items-center gap-2 text-sm text-slate-600">
@@ -127,11 +123,8 @@ export function QuickEntryCreditCard() {
               onChange={(e) => setReimbursementStatus(e.target.value as ReimbursementStatus)}
               aria-label="Reimbursement status"
             >
-              {REIMBURSEMENT_STATUSES.map((status) => (
-                <option key={status} value={status}>
-                  {status}
-                </option>
-              ))}
+              <option value="Not reimbursable">Not reimbursable</option>
+              <option value="Reimbursable">Reimbursable</option>
             </Select>
           </label>
           <Button type="submit">

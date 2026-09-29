@@ -28,23 +28,18 @@ function normalizeTransaction(transaction: StoredCreditCardTransaction): CreditC
   const { isReimbursable, ...storedTransaction } = transaction
   const wasLegacyExpense = transaction.paymentMethod === 'Expense'
   const reimbursementStatus =
-    transaction.reimbursementStatus === 'Expense' || wasLegacyExpense
-      ? 'Expense'
-      : transaction.reimbursementStatus === 'Reimbursable' ||
-          transaction.reimbursementStatus === true ||
-          isReimbursable === true
-        ? 'Reimbursable'
-        : 'Not reimbursable'
+    transaction.reimbursementStatus === 'Reimbursable' ||
+    transaction.reimbursementStatus === true ||
+    isReimbursable === true
+      ? 'Reimbursable'
+      : 'Not reimbursable'
 
   return {
     ...storedTransaction,
-    category:
-      reimbursementStatus === 'Expense'
-        ? 'N/A'
-        : transaction.category === 'N/A'
-          ? 'Other'
-          : transaction.category,
-    paymentMethod: wasLegacyExpense ? CREDIT_CARD_PAYMENT_METHOD : transaction.paymentMethod,
+    category: transaction.category === 'N/A' ? 'Other' : transaction.category,
+    paymentMethod: wasLegacyExpense
+      ? CREDIT_CARD_PAYMENT_METHOD
+      : transaction.paymentMethod ?? CREDIT_CARD_PAYMENT_METHOD,
     reimbursementStatus,
   }
 }

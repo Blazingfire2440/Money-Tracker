@@ -1,5 +1,4 @@
 import { Card } from '@/components/common/Card'
-import { Badge } from '@/components/common/Badge'
 import { DataTable, type Column } from '@/components/table/DataTable'
 import { useCreditCardStore } from '@/store/useCreditCardStore'
 import {
@@ -37,12 +36,9 @@ const columns: Column<CreditCardTransaction>[] = [
     options: [...REIMBURSEMENT_STATUSES],
     render: (row) =>
       row.reimbursementStatus === 'Not reimbursable' ? null : (
-        <Badge tone={row.reimbursementStatus === 'Expense' ? 'bad' : 'warn'}>
-          {row.reimbursementStatus}
-        </Badge>
+        <span className="text-warn-700">{row.reimbursementStatus}</span>
       ),
   },
-  { key: 'paymentMethod', label: 'Payment', editable: true, inputType: 'text' },
 ]
 
 export function CreditCardTransactionTable() {
@@ -70,7 +66,7 @@ export function CreditCardTransactionTable() {
         onEditRow={(id, patch) => update(id, patch)}
         onDeleteRow={(id) => remove(id)}
         getSearchableText={(row) =>
-          `${row.date} ${row.location} ${row.category} ${row.reason} ${row.paymentMethod} ${row.reimbursementStatus}`
+          `${row.date} ${row.location} ${row.category} ${row.reason} ${row.reimbursementStatus}`
         }
         emptyTitle="No credit card transactions yet"
         emptyDescription="Add your first charge above."

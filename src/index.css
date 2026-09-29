@@ -150,7 +150,64 @@ textarea {
 }
 
 .payback-print-report {
-  display: none;
+  display: block;
+  margin-top: 1.5rem;
+  border-top: 1px solid #334155;
+  padding-top: 1.25rem;
+}
+
+.payback-print-report h2 {
+  margin: 0;
+  color: #e2e8f0;
+  font-size: 1rem;
+  font-weight: 600;
+}
+
+.payback-print-period {
+  margin: 4px 0 16px;
+  color: #94a3b8;
+  font-size: 0.75rem;
+}
+
+.payback-print-report table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.8rem;
+}
+
+.payback-print-report th,
+.payback-print-report td {
+  border-bottom: 1px solid #334155;
+  padding: 7px 6px;
+  text-align: left;
+  vertical-align: top;
+}
+
+.payback-print-report th {
+  color: #94a3b8;
+  font-size: 0.7rem;
+  font-weight: 600;
+  text-transform: uppercase;
+}
+
+.payback-print-report .amount {
+  text-align: right;
+  white-space: nowrap;
+}
+
+.payback-print-totals {
+  margin-top: 18px;
+  margin-left: auto;
+  max-width: 360px;
+  color: #cbd5e1;
+  font-size: 0.8rem;
+}
+
+.payback-print-totals p {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  margin: 6px 0;
 }
 
 @media print {
@@ -178,7 +235,7 @@ textarea {
     font-family: Arial, sans-serif;
   }
 
-  .payback-print-report h1 {
+  .payback-print-report h2 {
     margin: 0;
     font-size: 22pt;
   }

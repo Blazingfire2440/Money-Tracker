@@ -6,6 +6,7 @@ export type BudgetColor = 'good' | 'warn' | 'bad'
 export interface MonthlyBudgetStats {
   totalCharges: number
   reimbursableTotal: number
+  expenseTotal: number
   netCharges: number
   remainingBudget: number
   percentUsed: number
@@ -39,6 +40,7 @@ export function colorForPercent(percentUsed: number): BudgetColor {
 export function computeMonthlyBudgetStats(
   transactionsInMonth: CreditCardTransaction[],
   monthlyBudget: number,
+  expenseTotal = 0,
 ): MonthlyBudgetStats {
   const charges = transactionsInMonth.filter(
     (transaction) =>
@@ -49,13 +51,14 @@ export function computeMonthlyBudgetStats(
   const reimbursableTotal = charges
     .filter((transaction) => transaction.reimbursementStatus === 'Reimbursable')
     .reduce((sum, t) => sum + t.amount, 0)
-  const netCharges = totalCharges - reimbursableTotal
+  const netCharges = totalCharges - reimbursableTotal + expenseTotal
   const remainingBudget = monthlyBudget - netCharges
   const percentUsed = monthlyBudget > 0 ? (netCharges / monthlyBudget) * 100 : 0
 
   return {
     totalCharges,
     reimbursableTotal,
+    expenseTotal,
     netCharges,
     remainingBudget,
     percentUsed,
@@ -68,32 +71,4 @@ export function computeMonthlyBudgetStats(
 // Kept for callers that have raw Date values rather than pre-parsed month keys.
 export function dateToMonthKey(isoDate: string): string {
   return getMonthKey(parseISO(isoDate))
-}
-
-export interface ReimbursableStats {
-  items: CreditCardTransaction[]
-  totalOwed: number
-  totalSettled: number
-  totalExpenses: number
-}
-
-export function computeReimbursableStats(
-  transactions: CreditCardTransaction[],
-): ReimbursableStats {
-  const items = transactions
-    .filter((transaction) => transaction.reimbursementStatus === 'Reimbursable')
-    .sort((a, b) => b.date.localeCompare(a.date))
-
-  const outstandingReimbursements = items
-    .filter((transaction) => !transaction.isSettled)
-    .reduce((sum, transaction) => sum + transaction.amount, 0)
-  const expenses = transactions
-    .filter((transaction) => transaction.reimbursementStatus === 'Expense')
-    .reduce((sum, transaction) => sum + Math.abs(transaction.amount), 0)
-  const totalOwed = outstandingReimbursements - expenses
-  const totalSettled = items
-    .filter((transaction) => transaction.isSettled)
-    .reduce((sum, transaction) => sum + transaction.amount, 0)
-
-  return { items, totalOwed, totalSettled, totalExpenses: expenses }
 }

@@ -1,5 +1,11 @@
 import { createStore, get, set } from 'idb-keyval'
-import type { AppSettings, CreditCardTransaction, DiningTransaction } from '@/types'
+import type {
+  AppSettings,
+  BudgetExpense,
+  CreditCardTransaction,
+  DebitCardTransaction,
+  DiningTransaction,
+} from '@/types'
 import { STORAGE_KEYS } from './storageKeys'
 
 const store = createStore('money-tracker-db', 'keyval')
@@ -26,6 +32,22 @@ export function getCreditCardTransactions() {
 
 export function setCreditCardTransactions(transactions: CreditCardTransaction[]) {
   return set(STORAGE_KEYS.creditCardTransactions, transactions, store)
+}
+
+export function getDebitCardTransactions() {
+  return get<DebitCardTransaction[]>(STORAGE_KEYS.debitCardTransactions, store)
+}
+
+export function setDebitCardTransactions(transactions: DebitCardTransaction[]) {
+  return set(STORAGE_KEYS.debitCardTransactions, transactions, store)
+}
+
+export function getBudgetExpenses() {
+  return get<BudgetExpense[]>(STORAGE_KEYS.budgetExpenses, store)
+}
+
+export function setBudgetExpenses(expenses: BudgetExpense[]) {
+  return set(STORAGE_KEYS.budgetExpenses, expenses, store)
 }
 
 export function getSchemaVersion() {

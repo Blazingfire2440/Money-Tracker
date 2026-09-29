@@ -1,10 +1,20 @@
-import { UtensilsCrossed, CreditCard, Settings, ArrowLeftRight } from 'lucide-react'
+import {
+  UtensilsCrossed,
+  CreditCard,
+  Settings,
+  ArrowLeftRight,
+  Wallet,
+  PiggyBank,
+  type LucideIcon,
+} from 'lucide-react'
 import type { TabKey } from '@/store/useUIStore'
 import clsx from 'clsx'
 
-const TABS: { key: TabKey; label: string; icon: typeof UtensilsCrossed }[] = [
+const TABS: { key: TabKey; label: string; icon: LucideIcon }[] = [
   { key: 'dining', label: 'Dining Dollars', icon: UtensilsCrossed },
   { key: 'creditCard', label: 'Credit Card', icon: CreditCard },
+  { key: 'debitCard', label: 'Debit Card', icon: Wallet },
+  { key: 'budget', label: 'Budget', icon: PiggyBank },
   { key: 'importExport', label: 'Import / Export', icon: ArrowLeftRight },
   { key: 'settings', label: 'Settings', icon: Settings },
 ]

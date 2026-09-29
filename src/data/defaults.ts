@@ -7,4 +7,4 @@ export const DEFAULT_SETTINGS: AppSettings = {
   monthlyCreditCardBudget: 450.0,
 }
 
-export const SCHEMA_VERSION = 2
+export const SCHEMA_VERSION = 4

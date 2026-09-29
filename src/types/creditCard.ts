@@ -4,7 +4,6 @@ export const CREDIT_CARD_PAYMENT_METHOD = 'Tanner V. ...8483'
 export const REIMBURSEMENT_STATUSES = [
   'Not reimbursable',
   'Reimbursable',
-  'Expense',
 ] as const
 
 export type ReimbursementStatus = (typeof REIMBURSEMENT_STATUSES)[number]
@@ -34,8 +33,8 @@ export interface CreditCardTransaction {
   category: CreditCardCategory
   amount: number
   reason: string
-  reimbursementStatus: ReimbursementStatus
-  paymentMethod: string
+  reimbursementStatus: ReimbursementStatus | 'Expense'
+  paymentMethod?: string
   isSettled?: boolean
   settledDate?: string
 }

@@ -32,7 +32,7 @@ export function MonthlyBudgetPanel({ stats, monthlyBudget, budgetPeriod }: Month
         </p>
       )}
 
-      <dl className="grid grid-cols-2 gap-y-3 sm:grid-cols-4">
+      <dl className="grid grid-cols-2 gap-y-3 sm:grid-cols-5">
         <div>
           <dt className="text-xs text-slate-500">Total Charges</dt>
           <dd className="text-base font-semibold tabular-nums">{formatCurrency(stats.totalCharges)}</dd>
@@ -40,6 +40,10 @@ export function MonthlyBudgetPanel({ stats, monthlyBudget, budgetPeriod }: Month
         <div>
           <dt className="text-xs text-slate-500">Reimbursable</dt>
           <dd className="text-base font-semibold tabular-nums">{formatCurrency(stats.reimbursableTotal)}</dd>
+        </div>
+        <div>
+          <dt className="text-xs text-slate-500">Expenses</dt>
+          <dd className="text-base font-semibold tabular-nums">{formatCurrency(stats.expenseTotal)}</dd>
         </div>
         <div>
           <dt className="text-xs text-slate-500">Net Charges</dt>

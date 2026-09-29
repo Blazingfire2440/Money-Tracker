@@ -17,7 +17,7 @@ export function CategoryBreakdownPanel({ stats }: CategoryBreakdownPanelProps) {
         Non-reimbursable Category Breakdown
       </h3>
       <p className="mb-3 mt-1 text-xs text-slate-500">
-        Only non-reimbursable charges are included; reimbursable items and expenses are excluded.
+        Only non-reimbursable credit-card charges are included; reimbursable items are excluded.
       </p>
       {chartData.length === 0 ? (
         <EmptyState title="No charges this month" />

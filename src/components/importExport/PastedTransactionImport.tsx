@@ -5,12 +5,14 @@ import { Card } from '@/components/common/Card'
 import { Checkbox } from '@/components/common/Checkbox'
 import { Select } from '@/components/common/Select'
 import { useCreditCardStore } from '@/store/useCreditCardStore'
+import { useDebitCardStore } from '@/store/useDebitCardStore'
 import { useDiningStore } from '@/store/useDiningStore'
 import { applyImportMapping, parseDiningPasteRows } from '@/utils/csv/diningImport'
 import { parseCreditCardPaste } from '@/utils/csv/creditCardImport'
+import { parseDebitCardPaste } from '@/utils/csv/debitCardImport'
 import { formatCurrency } from '@/utils/formatters'
 
-type PasteKind = 'dining' | 'credit-card'
+type PasteKind = 'dining' | 'credit-card' | 'debit-card'
 
 const DINING_PASTE_MAPPING = {
   account: 'account',
@@ -19,17 +21,27 @@ const DINING_PASTE_MAPPING = {
   amount: 'amount',
 }
 
+function getTransactionDescription(transaction: {
+  description?: string
+  location?: string
+}): string {
+  return transaction.description ?? transaction.location ?? ''
+}
+
 export function PastedTransactionImport() {
   const diningTransactions = useDiningStore((state) => state.transactions)
   const bulkAddDining = useDiningStore((state) => state.bulkAdd)
   const creditCardTransactions = useCreditCardStore((state) => state.transactions)
   const bulkAddCreditCard = useCreditCardStore((state) => state.bulkAdd)
+  const debitCardTransactions = useDebitCardStore((state) => state.transactions)
+  const bulkAddDebitCard = useDebitCardStore((state) => state.bulkAdd)
 
   const [kind, setKind] = useState<PasteKind>('dining')
   const [text, setText] = useState('')
   const [previewKind, setPreviewKind] = useState<PasteKind | null>(null)
   const [diningRows, setDiningRows] = useState<Record<string, string>[]>([])
   const [skipDuplicates, setSkipDuplicates] = useState(true)
+  const [openingBalance, setOpeningBalance] = useState('')
   const [error, setError] = useState<string | null>(null)
 
   const diningResults = useMemo(
@@ -46,7 +58,28 @@ export function PastedTransactionImport() {
     [previewKind, text, creditCardTransactions],
   )
 
-  const results = previewKind === 'credit-card' ? creditCardResults : diningResults
+  const debitOpeningBalance =
+    openingBalance.trim() === '' ? null : Number(openingBalance.replace(/[$,]/g, ''))
+  const debitCardResults = useMemo(
+    () =>
+      previewKind === 'debit-card' &&
+      (debitOpeningBalance === null || Number.isFinite(debitOpeningBalance))
+        ? parseDebitCardPaste(
+            text,
+            debitCardTransactions,
+            new Date().getFullYear(),
+            debitOpeningBalance,
+          )
+        : [],
+    [previewKind, text, debitCardTransactions, debitOpeningBalance],
+  )
+
+  const results =
+    previewKind === 'credit-card'
+      ? creditCardResults
+      : previewKind === 'debit-card'
+        ? debitCardResults
+        : diningResults
   const validResults = results.filter(
     (result) => result.transaction && !(skipDuplicates && result.isDuplicate),
   )
@@ -60,6 +93,14 @@ export function PastedTransactionImport() {
 
   function handlePreview() {
     setError(null)
+    if (
+      kind === 'debit-card' &&
+      debitOpeningBalance !== null &&
+      (!Number.isFinite(debitOpeningBalance) || debitOpeningBalance < 0)
+    ) {
+      setError('Opening balance must be a non-negative amount.')
+      return
+    }
     if (kind === 'dining') setDiningRows(parseDiningPasteRows(text))
     setPreviewKind(kind)
   }
@@ -73,6 +114,13 @@ export function PastedTransactionImport() {
             : [],
         )
         await bulkAddCreditCard(transactions)
+      } else if (previewKind === 'debit-card') {
+        const transactions = debitCardResults.flatMap((result) =>
+          result.transaction && !(skipDuplicates && result.isDuplicate)
+            ? [result.transaction]
+            : [],
+        )
+        await bulkAddDebitCard(transactions)
       } else if (previewKind === 'dining') {
         const transactions = diningResults.flatMap((result) =>
           result.transaction && !(skipDuplicates && result.isDuplicate)
@@ -83,6 +131,7 @@ export function PastedTransactionImport() {
       }
       setText('')
       setDiningRows([])
+      setOpeningBalance('')
       resetPreview()
     } catch (e) {
       setError(e instanceof Error ? e.message : 'Failed to import transactions')
@@ -93,8 +142,8 @@ export function PastedTransactionImport() {
     <Card>
       <h3 className="mb-2 text-sm font-semibold text-slate-700">Paste Transactions</h3>
       <p className="mb-3 text-xs text-slate-500">
-        Paste copied rows from Dining Dollars or a credit-card statement. Dining statement debits
-        are converted to positive spending and refunds to negative amounts.
+        Paste copied rows from Dining Dollars, a credit-card statement, or a debit-card statement.
+        Debit deposits and withdrawals are classified using the ending balance change.
       </p>
 
       <div className="flex flex-col gap-3">
@@ -110,6 +159,7 @@ export function PastedTransactionImport() {
           >
             <option value="dining">Dining Dollars (tab-delimited)</option>
             <option value="credit-card">Credit card statement</option>
+            <option value="debit-card">Debit card statement</option>
           </Select>
         </label>
 
@@ -125,11 +175,31 @@ export function PastedTransactionImport() {
             placeholder={
               kind === 'dining'
                 ? 'Account\\tDate and time\\tLocation\\tAmount'
-                : 'Sep 24\\nAmtrak\\nOther Travel\\nTanner V. ...8483\\n$63.75'
+                : kind === 'credit-card'
+                  ? 'Sep 24\\nAmtrak\\nOther Travel\\nTanner V. ...8483\\n$63.75'
+                  : '8/18 Purchase authorized on 08/17 Merchant City\\n4.00 450.52'
             }
             aria-label="Pasted transaction rows"
           />
         </label>
+
+        {kind === 'debit-card' && (
+          <label className="flex max-w-xs flex-col gap-1 text-sm text-slate-600">
+            Opening balance (optional if included in pasted rows)
+            <input
+              type="number"
+              min="0"
+              step="0.01"
+              value={openingBalance}
+              onChange={(event) => {
+                setOpeningBalance(event.target.value)
+                resetPreview()
+              }}
+              disabled={previewKind !== null}
+              className="rounded-lg border border-slate-300 px-3 py-2 text-sm text-slate-900 focus:border-slate-500 focus:outline-none focus:ring-1 focus:ring-slate-500"
+            />
+          </label>
+        )}
 
         {previewKind === null ? (
           <Button onClick={handlePreview} disabled={!text.trim()}>
@@ -153,7 +223,7 @@ export function PastedTransactionImport() {
                 {results.slice(0, 5).map((result, index) => (
                   <div key={index} className="border-t border-slate-200 py-1 first:border-t-0">
                     {result.transaction
-                      ? `${result.transaction.date} — ${result.transaction.location} — ${formatCurrency(result.transaction.amount)}${result.isDuplicate ? ' — duplicate' : ''}`
+                      ? `${result.transaction.date} — ${getTransactionDescription(result.transaction)} — ${formatCurrency(result.transaction.amount)}${result.isDuplicate ? ' — duplicate' : ''}`
                       : `Row ${index + 1}: ${result.error}`}
                   </div>
                 ))}

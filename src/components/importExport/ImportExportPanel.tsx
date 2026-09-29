@@ -4,9 +4,11 @@ import { Card } from '@/components/common/Card'
 import { Button } from '@/components/common/Button'
 import { useDiningStore } from '@/store/useDiningStore'
 import { useCreditCardStore } from '@/store/useCreditCardStore'
+import { useDebitCardStore } from '@/store/useDebitCardStore'
+import { useBudgetExpenseStore } from '@/store/useBudgetExpenseStore'
 import { useSettingsStore } from '@/store/useSettingsStore'
-import { SCHEMA_VERSION } from '@/data/defaults'
 import { parseBackupPayload } from '@/utils/csv/backupExportImport'
+import { migrateLegacyBudgetExpenses } from '@/utils/calculations/legacyBudgetExpenses'
 import { ExportButtons } from './ExportButtons'
 import { CsvImportWizard } from './CsvImportWizard'
 import { PastedTransactionImport } from './PastedTransactionImport'
@@ -14,6 +16,8 @@ import { PastedTransactionImport } from './PastedTransactionImport'
 export function ImportExportPanel() {
   const bulkReplaceDining = useDiningStore((s) => s.bulkReplace)
   const bulkReplaceCreditCard = useCreditCardStore((s) => s.bulkReplace)
+  const bulkReplaceDebitCard = useDebitCardStore((s) => s.bulkReplace)
+  const bulkReplaceBudgetExpenses = useBudgetExpenseStore((s) => s.bulkReplace)
   const updateSettings = useSettingsStore((s) => s.update)
   const fileInputRef = useRef<HTMLInputElement>(null)
   const [error, setError] = useState<string | null>(null)
@@ -24,21 +28,33 @@ export function ImportExportPanel() {
       const text = await file.text()
       const payload = parseBackupPayload(text)
       const confirmed = window.confirm(
-        'Restoring a backup will overwrite all current dining and credit card transactions and settings. Continue?',
+        'Restoring a backup will overwrite all current dining, credit card, and debit card transactions and settings. Continue?',
       )
       if (!confirmed) return
 
       const diningTransactions =
-        payload.version < SCHEMA_VERSION
+        payload.version < 2
           ? payload.diningTransactions.map((transaction) => ({
               ...transaction,
               amount: -transaction.amount,
             }))
           : payload.diningTransactions
+      const migratedBudgetData =
+        payload.version < 4
+          ? migrateLegacyBudgetExpenses(
+              payload.creditCardTransactions,
+              payload.budgetExpenses,
+            )
+          : {
+              creditCardTransactions: payload.creditCardTransactions,
+              budgetExpenses: payload.budgetExpenses,
+            }
 
       await Promise.all([
         bulkReplaceDining(diningTransactions),
-        bulkReplaceCreditCard(payload.creditCardTransactions),
+        bulkReplaceCreditCard(migratedBudgetData.creditCardTransactions),
+        bulkReplaceDebitCard(payload.debitCardTransactions),
+        bulkReplaceBudgetExpenses(migratedBudgetData.budgetExpenses),
         updateSettings(payload.settings),
       ])
     } catch (e) {

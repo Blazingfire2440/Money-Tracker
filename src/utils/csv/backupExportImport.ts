@@ -1,4 +1,10 @@
-import type { AppSettings, CreditCardTransaction, DiningTransaction } from '@/types'
+import type {
+  AppSettings,
+  BudgetExpense,
+  CreditCardTransaction,
+  DebitCardTransaction,
+  DiningTransaction,
+} from '@/types'
 import { SCHEMA_VERSION } from '@/data/defaults'
 
 export interface BackupPayload {
@@ -7,12 +13,16 @@ export interface BackupPayload {
   settings: AppSettings
   diningTransactions: DiningTransaction[]
   creditCardTransactions: CreditCardTransaction[]
+  debitCardTransactions: DebitCardTransaction[]
+  budgetExpenses: BudgetExpense[]
 }
 
 export function buildBackupPayload(
   settings: AppSettings,
   diningTransactions: DiningTransaction[],
   creditCardTransactions: CreditCardTransaction[],
+  debitCardTransactions: DebitCardTransaction[],
+  budgetExpenses: BudgetExpense[],
 ): BackupPayload {
   return {
     version: SCHEMA_VERSION,
@@ -20,6 +30,8 @@ export function buildBackupPayload(
     settings,
     diningTransactions,
     creditCardTransactions,
+    debitCardTransactions,
+    budgetExpenses,
   }
 }
 
@@ -34,6 +46,14 @@ export function parseBackupPayload(text: string): BackupPayload {
   ) {
     throw new Error('Invalid backup file format')
   }
+  if (data.debitCardTransactions !== undefined && !Array.isArray(data.debitCardTransactions)) {
+    throw new Error('Invalid backup file format')
+  }
+  if (data.debitCardTransactions === undefined) data.debitCardTransactions = []
+  if (data.budgetExpenses !== undefined && !Array.isArray(data.budgetExpenses)) {
+    throw new Error('Invalid backup file format')
+  }
+  if (data.budgetExpenses === undefined) data.budgetExpenses = []
   return data as BackupPayload
 }
 
