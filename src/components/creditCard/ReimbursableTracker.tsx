@@ -81,7 +81,6 @@ export function ReimbursableTracker() {
   const periodRows = trackerRows.filter(
     (row) => dateToMonthKey(row.date) === selectedMonth,
   )
-  const unsettledRows = trackerRows.filter((row) => !row.isSettled)
   const reportRows = [
     ...periodRows.filter((row) => row.source !== 'Debit Card'),
     ...reimbursableRows.filter((row) => row.source === 'Debit Card'),
@@ -144,12 +143,15 @@ export function ReimbursableTracker() {
         </div>
       </div>
 
-      {unsettledRows.length === 0 ? (
+      {trackerRows.length === 0 ? (
         <EmptyState title="No reimbursable items or expenses" />
       ) : (
         <ul className="divide-y divide-slate-100">
-          {unsettledRows.map((row) => (
-            <li key={`${row.source}-${row.id}`} className="flex items-center justify-between py-2 text-sm">
+          {trackerRows.map((row) => (
+            <li
+              key={`${row.source}-${row.id}`}
+              className={`flex items-center justify-between py-2 text-sm ${row.isSettled ? 'opacity-60' : ''}`}
+            >
               <div>
                 <div className="font-medium text-slate-900">{row.description}</div>
                 <div className="text-xs text-slate-500">
@@ -164,7 +166,9 @@ export function ReimbursableTracker() {
                 {row.source === 'Expense' ? (
                   <div className="flex items-center gap-2">
                     <button onClick={() => void toggleSettled(row)}>
-                      <Badge tone="warn">Unsettled expense</Badge>
+                      <Badge tone={row.isSettled ? 'good' : 'warn'}>
+                        {row.isSettled ? 'Settled expense' : 'Unsettled expense'}
+                      </Badge>
                     </button>
                     <button
                       onClick={() => void removeExpense(row.id)}
