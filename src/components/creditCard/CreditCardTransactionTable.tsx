@@ -41,7 +41,7 @@ const columns: Column<CreditCardTransaction>[] = [
   },
 ]
 
-export function CreditCardTransactionTable() {
+export function CreditCardTransactionTable({ rows }: { rows: CreditCardTransaction[] }) {
   const transactions = useCreditCardStore((s) => s.transactions)
   const update = useCreditCardStore((s) => s.update)
   const remove = useCreditCardStore((s) => s.remove)
@@ -61,15 +61,15 @@ export function CreditCardTransactionTable() {
       <h3 className="mb-3 text-sm font-semibold text-slate-700">Credit Card Transactions</h3>
       <DataTable
         columns={transactionColumns}
-        rows={transactions}
+        rows={rows}
         getRowId={(row) => row.id}
         onEditRow={(id, patch) => update(id, patch)}
         onDeleteRow={(id) => remove(id)}
         getSearchableText={(row) =>
           `${row.date} ${row.location} ${row.category} ${row.reason} ${row.reimbursementStatus}`
         }
-        emptyTitle="No credit card transactions yet"
-        emptyDescription="Add your first charge above."
+        emptyTitle="No credit card transactions this month"
+        emptyDescription="Add a charge above or pick a different month."
       />
     </Card>
   )
