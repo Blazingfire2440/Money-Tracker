@@ -30,10 +30,13 @@ const EMPTY: FormState = {
 }
 
 function toInput(f: FormState): GiftCardInput | null {
-  const total = Number(f.total)
-  // Remaining defaults to the full amount for a new card
+  const isNA = /^n\/?a$/i.test(f.total.trim())
+  const total = isNA ? null : Number(f.total)
+  // Remaining defaults to the full amount for a new card; with an NA total it must be given
   const remaining = f.remaining === '' ? total : Number(f.remaining)
-  if (!f.purpose.trim() || !Number.isFinite(total) || total < 0 || !Number.isFinite(remaining) || remaining < 0) return null
+  if (total !== null && (f.total.trim() === '' || !Number.isFinite(total) || total < 0)) return null
+  if (remaining === null || !Number.isFinite(remaining) || remaining < 0) return null
+  if (!f.purpose.trim()) return null
   if (f.expirationType === 'date' && !f.expirationDate) return null
   return {
     purpose: f.purpose.trim(),
@@ -63,7 +66,7 @@ function GiftCardFields({ form, setForm }: { form: FormState; setForm: (f: FormS
         )}
       </div>
       <Input value={form.otherInfo} onChange={(e) => set({ otherInfo: e.target.value })} placeholder="PIN / CVC / other info" aria-label="Other info" />
-      <Input type="number" min="0" step="0.01" value={form.total} onChange={(e) => set({ total: e.target.value })} placeholder="Total amount" aria-label="Total amount" required />
+      <Input type="text" inputMode="decimal" pattern="^\s*(\d+(\.\d+)?|\.\d+|[Nn]/?[Aa])\s*$" title="A number, or NA" value={form.total} onChange={(e) => set({ total: e.target.value })} placeholder="Total amount (or NA)" aria-label="Total amount" required />
       <Input type="number" min="0" step="0.01" value={form.remaining} onChange={(e) => set({ remaining: e.target.value })} placeholder="Remaining (defaults to total)" aria-label="Remaining amount" />
     </>
   )
@@ -119,7 +122,7 @@ export function GiftCardsPage() {
         expirationType: c.expirationType,
         expirationDate: c.expirationDate,
         otherInfo: c.otherInfo,
-        total: String(c.total),
+        total: c.total === null ? 'NA' : String(c.total),
         remaining: String(c.remaining),
       },
     })
@@ -186,7 +189,7 @@ export function GiftCardsPage() {
                     <td>{c.cardNumber || '—'}</td>
                     <td className={isExpired(c) ? 'text-red-600' : ''}>{expirationLabel(c)}{isExpired(c) ? ' (expired)' : ''}</td>
                     <td>{c.otherInfo || '—'}</td>
-                    <td className="text-right">{formatCurrency(c.total)}</td>
+                    <td className="text-right">{c.total === null ? 'NA' : formatCurrency(c.total)}</td>
                     <td className="text-right font-medium">{formatCurrency(c.remaining)}</td>
                     <td className="whitespace-nowrap text-right">
                       <Button variant="ghost" className="px-2 py-1" aria-label="Edit" onClick={() => startEdit(c)}><Pencil size={14} /></Button>

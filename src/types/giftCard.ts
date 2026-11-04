@@ -7,7 +7,7 @@ export interface GiftCard {
   expirationType: GiftCardExpiration
   expirationDate: string // YYYY-MM-DD, only meaningful when expirationType is 'date'
   otherInfo: string // PIN / CVC / etc.
-  total: number
+  total: number | null // null means "NA" (total amount not applicable/unknown)
   remaining: number
 }
 
