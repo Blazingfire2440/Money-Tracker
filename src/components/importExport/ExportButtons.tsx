@@ -6,6 +6,7 @@ import { useCreditCardStore } from '@/store/useCreditCardStore'
 import { useDebitCardStore } from '@/store/useDebitCardStore'
 import { useBudgetExpenseStore } from '@/store/useBudgetExpenseStore'
 import { useSettingsStore } from '@/store/useSettingsStore'
+import { useGiftCardStore } from '@/store/useGiftCardStore'
 import { usePiggyBankStore } from '@/store/usePiggyBankStore'
 import { buildBackupPayload, downloadFile } from '@/utils/csv/backupExportImport'
 import { rowsToCsv } from '@/utils/csv/csvParser'
@@ -18,6 +19,7 @@ export function ExportButtons() {
   const settings = useSettingsStore((s) => s.settings)
   const piggyCounts = usePiggyBankStore((s) => s.counts)
   const piggyHistory = usePiggyBankStore((s) => s.history)
+  const giftCards = useGiftCardStore((s) => s.cards)
 
   function exportJsonBackup() {
     const payload = buildBackupPayload(
@@ -27,6 +29,7 @@ export function ExportButtons() {
       debitCardTransactions,
       budgetExpenses,
       { counts: piggyCounts, history: piggyHistory },
+      giftCards,
     )
     downloadFile(
       `money-tracker-backup-${new Date().toISOString().slice(0, 10)}.json`,
@@ -59,6 +62,14 @@ export function ExportButtons() {
     )
   }
 
+  function exportGiftCardsCsv() {
+    downloadFile(
+      `gift-cards-${new Date().toISOString().slice(0, 10)}.csv`,
+      rowsToCsv(giftCards),
+      'text/csv',
+    )
+  }
+
   return (
     <Card>
       <h3 className="mb-3 text-sm font-semibold text-slate-700">Export</h3>
@@ -78,6 +89,10 @@ export function ExportButtons() {
         <Button variant="secondary" onClick={exportDebitCardCsv}>
           <Download size={16} />
           Debit Card CSV
+        </Button>
+        <Button variant="secondary" onClick={exportGiftCardsCsv}>
+          <Download size={16} />
+          Gift Cards CSV
         </Button>
       </div>
     </Card>

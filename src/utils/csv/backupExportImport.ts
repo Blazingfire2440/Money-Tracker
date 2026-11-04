@@ -5,6 +5,7 @@ import type {
   DebitCardTransaction,
   DiningTransaction,
 } from '@/types'
+import type { GiftCard } from '@/types/giftCard'
 import type { PiggyBankState } from '@/types/piggyBank'
 import { SCHEMA_VERSION } from '@/data/defaults'
 
@@ -17,6 +18,7 @@ export interface BackupPayload {
   debitCardTransactions: DebitCardTransaction[]
   budgetExpenses: BudgetExpense[]
   piggyBank?: PiggyBankState
+  giftCards?: GiftCard[]
 }
 
 export function buildBackupPayload(
@@ -26,6 +28,7 @@ export function buildBackupPayload(
   debitCardTransactions: DebitCardTransaction[],
   budgetExpenses: BudgetExpense[],
   piggyBank: PiggyBankState,
+  giftCards: GiftCard[],
 ): BackupPayload {
   return {
     version: SCHEMA_VERSION,
@@ -36,6 +39,7 @@ export function buildBackupPayload(
     debitCardTransactions,
     budgetExpenses,
     piggyBank,
+    giftCards,
   }
 }
 
@@ -66,6 +70,9 @@ export function parseBackupPayload(text: string): BackupPayload {
       data.piggyBank.counts === null ||
       !Array.isArray(data.piggyBank.history))
   ) {
+    throw new Error('Invalid backup file format')
+  }
+  if (data.giftCards !== undefined && !Array.isArray(data.giftCards)) {
     throw new Error('Invalid backup file format')
   }
   return data as BackupPayload

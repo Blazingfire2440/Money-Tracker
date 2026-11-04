@@ -6,6 +6,7 @@ import type {
   DebitCardTransaction,
   DiningTransaction,
 } from '@/types'
+import type { GiftCard } from '@/types/giftCard'
 import type { PiggyBankState } from '@/types/piggyBank'
 import { STORAGE_KEYS } from './storageKeys'
 
@@ -57,6 +58,14 @@ export function getPiggyBank() {
 
 export function setPiggyBank(state: PiggyBankState) {
   return set(STORAGE_KEYS.piggyBank, state, store)
+}
+
+export function getGiftCards() {
+  return get<GiftCard[]>(STORAGE_KEYS.giftCards, store)
+}
+
+export function setGiftCards(cards: GiftCard[]) {
+  return set(STORAGE_KEYS.giftCards, cards, store)
 }
 
 export function getSchemaVersion() {

@@ -6,6 +6,7 @@ import {
   Wallet,
   PiggyBank,
   Coins,
+  Gift,
   type LucideIcon,
 } from 'lucide-react'
 import type { TabKey } from '@/store/useUIStore'
@@ -17,6 +18,7 @@ const TABS: { key: TabKey; label: string; icon: LucideIcon }[] = [
   { key: 'debitCard', label: 'Debit Card', icon: Wallet },
   { key: 'budget', label: 'Budget', icon: PiggyBank },
   { key: 'piggyBank', label: 'Piggy Bank', icon: Coins },
+  { key: 'giftCards', label: 'Gift Cards', icon: Gift },
   { key: 'importExport', label: 'Import / Export', icon: ArrowLeftRight },
   { key: 'settings', label: 'Settings', icon: Settings },
 ]

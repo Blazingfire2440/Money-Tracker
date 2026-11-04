@@ -6,6 +6,8 @@ import { DebitCardPage } from '@/pages/DebitCardPage'
 import { BudgetPage } from '@/pages/BudgetPage'
 import { PiggyBankPage } from '@/pages/PiggyBankPage'
 import { usePiggyBankStore } from '@/store/usePiggyBankStore'
+import { GiftCardsPage } from '@/pages/GiftCardsPage'
+import { useGiftCardStore } from '@/store/useGiftCardStore'
 import { SettingsPage } from '@/pages/SettingsPage'
 import { ImportExportPage } from '@/pages/ImportExportPage'
 import { useUIStore } from '@/store/useUIStore'
@@ -26,6 +28,7 @@ function App() {
   const hydrateBudgetExpenses = useBudgetExpenseStore((s) => s.hydrate)
   const hydrateSettings = useSettingsStore((s) => s.hydrate)
   const hydratePiggyBank = usePiggyBankStore((s) => s.hydrate)
+  const hydrateGiftCards = useGiftCardStore((s) => s.hydrate)
 
   useEffect(() => {
     void (async () => {
@@ -37,10 +40,11 @@ function App() {
         hydrateBudgetExpenses(),
         hydrateSettings(),
         hydratePiggyBank(),
+        hydrateGiftCards(),
       ])
       setIsReady(true)
     })()
-  }, [hydrateDining, hydrateCreditCard, hydrateDebitCard, hydrateBudgetExpenses, hydrateSettings, hydratePiggyBank])
+  }, [hydrateDining, hydrateCreditCard, hydrateDebitCard, hydrateBudgetExpenses, hydrateSettings, hydratePiggyBank, hydrateGiftCards])
 
   if (!isReady) {
     return (
@@ -57,6 +61,7 @@ function App() {
       {activeTab === 'debitCard' && <DebitCardPage />}
       {activeTab === 'budget' && <BudgetPage />}
       {activeTab === 'piggyBank' && <PiggyBankPage />}
+      {activeTab === 'giftCards' && <GiftCardsPage />}
       {activeTab === 'settings' && <SettingsPage />}
       {activeTab === 'importExport' && <ImportExportPage />}
     </AppShell>
