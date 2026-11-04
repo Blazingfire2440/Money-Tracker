@@ -6,6 +6,8 @@ const num = (v: unknown) => {
   return Number.isFinite(n) ? n : 0
 }
 
+const isNA = (v: unknown) => v === null || /^n\/?a$/i.test(String(v ?? '').trim())
+
 // Coerces untrusted data (backup JSON, CSV rows) into valid gift cards.
 export function normalizeGiftCards(raw: unknown[]): GiftCard[] {
   return raw
@@ -24,7 +26,7 @@ export function normalizeGiftCards(raw: unknown[]): GiftCard[] {
         expirationType: type as GiftCardExpiration,
         expirationDate: type === 'date' ? date : '',
         otherInfo: String(r.otherInfo ?? '').trim(),
-        total: num(r.total),
+        total: isNA(r.total) ? null : num(r.total),
         remaining: num(r.remaining),
       }
     })
