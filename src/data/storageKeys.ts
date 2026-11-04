@@ -4,5 +4,6 @@ export const STORAGE_KEYS = {
   creditCardTransactions: 'credit-card-transactions',
   debitCardTransactions: 'debit-card-transactions',
   budgetExpenses: 'budget-expenses',
+  piggyBank: 'piggy-bank',
   schemaVersion: 'schema-version',
 } as const

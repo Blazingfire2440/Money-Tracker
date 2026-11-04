@@ -7,6 +7,7 @@ import { useCreditCardStore } from '@/store/useCreditCardStore'
 import { useDebitCardStore } from '@/store/useDebitCardStore'
 import { useBudgetExpenseStore } from '@/store/useBudgetExpenseStore'
 import { useSettingsStore } from '@/store/useSettingsStore'
+import { usePiggyBankStore } from '@/store/usePiggyBankStore'
 import { parseBackupPayload } from '@/utils/csv/backupExportImport'
 import { migrateLegacyBudgetExpenses } from '@/utils/calculations/legacyBudgetExpenses'
 import { ExportButtons } from './ExportButtons'
@@ -19,6 +20,7 @@ export function ImportExportPanel() {
   const bulkReplaceDebitCard = useDebitCardStore((s) => s.bulkReplace)
   const bulkReplaceBudgetExpenses = useBudgetExpenseStore((s) => s.bulkReplace)
   const updateSettings = useSettingsStore((s) => s.update)
+  const bulkReplacePiggyBank = usePiggyBankStore((s) => s.bulkReplace)
   const fileInputRef = useRef<HTMLInputElement>(null)
   const [error, setError] = useState<string | null>(null)
 
@@ -28,7 +30,7 @@ export function ImportExportPanel() {
       const text = await file.text()
       const payload = parseBackupPayload(text)
       const confirmed = window.confirm(
-        'Restoring a backup will overwrite all current dining, credit card, and debit card transactions and settings. Continue?',
+        'Restoring a backup will overwrite all current dining, credit card, and debit card transactions, piggy bank, and settings. Continue?',
       )
       if (!confirmed) return
 
@@ -56,6 +58,8 @@ export function ImportExportPanel() {
         bulkReplaceDebitCard(payload.debitCardTransactions),
         bulkReplaceBudgetExpenses(migratedBudgetData.budgetExpenses),
         updateSettings(payload.settings),
+        // Backups made before the piggy bank existed leave current piggy bank data untouched
+        payload.piggyBank ? bulkReplacePiggyBank(payload.piggyBank) : Promise.resolve(),
       ])
     } catch (e) {
       setError(e instanceof Error ? e.message : 'Failed to restore backup')

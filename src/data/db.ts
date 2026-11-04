@@ -6,6 +6,7 @@ import type {
   DebitCardTransaction,
   DiningTransaction,
 } from '@/types'
+import type { PiggyBankState } from '@/types/piggyBank'
 import { STORAGE_KEYS } from './storageKeys'
 
 const store = createStore('money-tracker-db', 'keyval')
@@ -48,6 +49,14 @@ export function getBudgetExpenses() {
 
 export function setBudgetExpenses(expenses: BudgetExpense[]) {
   return set(STORAGE_KEYS.budgetExpenses, expenses, store)
+}
+
+export function getPiggyBank() {
+  return get<PiggyBankState>(STORAGE_KEYS.piggyBank, store)
+}
+
+export function setPiggyBank(state: PiggyBankState) {
+  return set(STORAGE_KEYS.piggyBank, state, store)
 }
 
 export function getSchemaVersion() {

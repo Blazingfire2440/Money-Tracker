@@ -6,6 +6,7 @@ import { useCreditCardStore } from '@/store/useCreditCardStore'
 import { useDebitCardStore } from '@/store/useDebitCardStore'
 import { useBudgetExpenseStore } from '@/store/useBudgetExpenseStore'
 import { useSettingsStore } from '@/store/useSettingsStore'
+import { usePiggyBankStore } from '@/store/usePiggyBankStore'
 import { buildBackupPayload, downloadFile } from '@/utils/csv/backupExportImport'
 import { rowsToCsv } from '@/utils/csv/csvParser'
 
@@ -15,6 +16,8 @@ export function ExportButtons() {
   const debitCardTransactions = useDebitCardStore((s) => s.transactions)
   const budgetExpenses = useBudgetExpenseStore((s) => s.expenses)
   const settings = useSettingsStore((s) => s.settings)
+  const piggyCounts = usePiggyBankStore((s) => s.counts)
+  const piggyHistory = usePiggyBankStore((s) => s.history)
 
   function exportJsonBackup() {
     const payload = buildBackupPayload(
@@ -23,6 +26,7 @@ export function ExportButtons() {
       creditCardTransactions,
       debitCardTransactions,
       budgetExpenses,
+      { counts: piggyCounts, history: piggyHistory },
     )
     downloadFile(
       `money-tracker-backup-${new Date().toISOString().slice(0, 10)}.json`,

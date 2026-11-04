@@ -7,6 +7,7 @@ export type TabKey =
   | 'creditCard'
   | 'debitCard'
   | 'budget'
+  | 'piggyBank'
   | 'settings'
   | 'importExport'
 
@@ -26,6 +27,7 @@ function initialTab(): TabKey {
     hash === 'creditCard' ||
     hash === 'debitCard' ||
     hash === 'budget' ||
+    hash === 'piggyBank' ||
     hash === 'settings' ||
     hash === 'importExport'
   ) {
